@@ -18,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Pencil, Trash } from "lucide-react";
-import Icon from "@/components/ui/Icon";
 
 import { type BreadcrumbItem } from "@/types";
 import { type Amenity, AmenityPaginatedResponse } from "@/types/amentiy";
@@ -135,7 +134,7 @@ export default function Index({ amenities, sort = "id", direction = "desc", sear
                                     <TableRow key={amenity.id}>
                                         <TableCell className="px-4 py-3 text-center min-w-[80px] w-[80px] max-w-[80px]">{amenity.id}</TableCell>
                                         <TableCell className="px-4 py-3 text-left w-full">{amenity.name}</TableCell>
-                                        <TableCell className="px-4 py-3 text-center min-w-[150px] w-[150px] max-w-[100px]">{amenity.icon}</TableCell>
+                                        <TableCell className="px-4 py-3 text-center min-w-[150px] w-[150px] max-w-[100px]">{amenity.icon ?? '-'}</TableCell>
                                         <TableCell className="px-4 py-3 text-center min-w-[100px] w-[100px] max-w-[100px]">
                                             <span className={clsx("px-2 py-1 rounded text-xs font-medium", amenity.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}> 
                                                 {amenity.is_active ? "ACTIVE" : "INACTIVE"}

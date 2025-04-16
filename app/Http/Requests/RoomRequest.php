@@ -22,15 +22,18 @@ class RoomRequest extends FormRequest
      */
     public function rules(): array
     {
+        $roomId = $this->route('id');
+        
         return [
             'room_number' => [
                 'required',
                 'string',
                 'max:250',
-                Rule::unique('rooms', 'room_number')->ignore($this->route('room')),
+                Rule::unique('rooms', 'room_number')->ignore($roomId),
             ],
             'name'          => 'required|string|max:255',
             'type'          => 'required|string|max:255',
+            'room_amenities' => 'nullable|string',
             'image'        => 'nullable',
             'status'        => 'required|string|max:255',
             'is_active'     => 'nullable|boolean',

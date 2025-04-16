@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('amenities', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
-            $table->string('icon')->nullable();
+            $table->string('room_id')->nullable();
+            $table->string('amenity_id')->nullable();
             $table->boolean('is_active')->default(1);
             $table->timestamps();
         });

@@ -6,6 +6,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\Request;
 use App\Http\Services\RoomService;
+use App\Http\Services\AmenityService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
@@ -15,10 +16,12 @@ use Exception;
 class RoomController extends Controller
 {
     protected $roomService;
+    protected $amenityService;
 
-    public function __construct(RoomService $roomService)
+    public function __construct(RoomService $roomService, AmenityService $amenityService)
     {
         $this->roomService = $roomService;
+        $this->amenityService = $amenityService;
     }
 
     /**
@@ -34,9 +37,11 @@ class RoomController extends Controller
             $status = $request->get('status') ?? 'all';
 
             $rooms = $this->roomService->getRooms($sort, $direction, $perPage, $search, $status);
+            $amenities = $this->amenityService->getActiveAmenities();
 
             return Inertia::render('admin/room/index', [
                 'rooms' => $rooms,
+                'amenities' => $amenities,
                 'filters' => compact('sort', 'direction', 'perPage', 'search', 'status'),
             ]);
         } catch (Exception $e) {
@@ -44,6 +49,7 @@ class RoomController extends Controller
 
             return Inertia::render('admin/room/index', [
                 'rooms' => [],
+                'amenities' => [],
                 'filters' => $request->only(['sort', 'direction', 'perPage', 'search', 'status']),
                 'error' => 'Failed to fetch rooms. Please try again.',
             ]);

@@ -22,10 +22,11 @@ class RoomService
      */
     public function getRooms($sort = 'id', $direction = 'desc', $perPage = 10, $search = null, $status = "all")
     {
+        // dd($status);
         try {
-            $query = $this->room
+            $query = $this->room->with(['roomAmenities', 'roomAmenities.amenity'])
                 ->when($status !== "all", function ($q) use ($status) {
-                    $q->where('status', $status);
+                    $q->where('is_active',  (int) $status);
                 })
                 ->when($search, function ($q) use ($search) {
                     $q->where(function ($q) use ($search) {
@@ -35,7 +36,6 @@ class RoomService
                 })
                 ->orderBy('is_active', 'desc')
                 ->orderBy($sort, $direction);
-
             return $query->paginate($perPage);
         } catch (Exception $e) {
             Log::error("Error fetching rooms: " . $e->getMessage());
@@ -69,19 +69,37 @@ class RoomService
                 $data['image'] = $data['image']->store('rooms', 'public');
             }
 
-            return $this->room->create([
+            $amenityIds = [];
+            if (!empty($data['room_amenities'])) {
+                $amenityIds = explode(',', $data['room_amenities']); 
+                $amenityIds = array_map('intval', $amenityIds); 
+            }
+    
+            $room = $this->room->create([
                 'room_number' => $data['room_number'],
                 'name' => $data['name'],
                 'type' => $data['type'],
-                'image' => $data['image'],
+                'image' => $data['image'] ?? null,
                 'status' => $data['status'],
                 'is_active' => $data['is_active'] ?? true,
             ]);
+    
+            if ($room && !empty($amenityIds)) {
+                foreach ($amenityIds as $amenityId) {
+                    $room->roomAmenities()->create([
+                        'amenity_id' => $amenityId,
+                        'is_active' => true,
+                    ]);
+                }
+            }
+    
+            return $room;
         } catch (Exception $e) {
             Log::error("Error creating room: " . $e->getMessage());
             return null;
         }
     }
+    
 
     /**
      * Update an existing room.
@@ -90,16 +108,16 @@ class RoomService
     {
         try {
             $room = $this->room->findOrFail($id);
-
-            if (isset($data['image']) && $data['image']->isValid()) { 
-                if(isset($room->image)){
-                    Storage::disk('public')->delete(optional($room)->image);
+    
+            if (isset($data['image']) && $data['image']->isValid()) {
+                if ($room->image) {
+                    Storage::disk('public')->delete($room->image);
                 }
                 $data['image'] = $data['image']->store('rooms', 'public');
             } else {
-                $data['image'] = optional($room)->image;
+                $data['image'] = $room->image; // Keep the existing image
             }
-
+    
             $room->update([
                 'room_number' => $data['room_number'],
                 'name' => $data['name'],
@@ -109,6 +127,20 @@ class RoomService
                 'is_active' => $data['is_active'] ?? $room->is_active,
             ]);
 
+            if (!empty($data['room_amenities'])) {
+                $amenityIds = explode(',', $data['room_amenities']);
+                $amenityIds = array_map('intval', $amenityIds);
+    
+                $room->roomAmenities()->delete();
+    
+                foreach ($amenityIds as $amenityId) {
+                    $room->roomAmenities()->create([
+                        'amenity_id' => $amenityId,
+                        'is_active' => true,
+                    ]);
+                }
+            }
+    
             return $room;
         } catch (ModelNotFoundException $e) {
             Log::error("Room not found for update: ID {$id}");
@@ -118,6 +150,7 @@ class RoomService
             return null;
         }
     }
+    
 
     /**
      * Soft-delete a room (mark as inactive or delete).

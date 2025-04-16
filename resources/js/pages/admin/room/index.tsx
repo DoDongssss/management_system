@@ -21,6 +21,7 @@ import { Pencil, Trash, Upload } from "lucide-react";
 
 import { type BreadcrumbItem } from "@/types";
 import { type Room, RoomPaginatedResponse } from "@/types/room";
+import { type Amenity, AmenityMultiSelect, AmenityPaginatedResponse } from "@/types/amentiy";
 
 import CreateUpdate from "./createUpdate";
 
@@ -35,14 +36,14 @@ const emptyRoom: Room = { id: null, room_number: "", name: "", type: "", image: 
 
 interface Props {
     rooms: RoomPaginatedResponse;
+    amenities: AmenityMultiSelect[];
     sort?: string;
     direction?: "asc" | "desc";
     search?: string;
     activeStatus?: string | boolean | number;
 }
 
-export default function Index({ rooms, sort = "id", direction = "desc", search = "", activeStatus }: Props) {
-    const { appUrl } = usePage().props;
+export default function Index({ rooms, amenities, sort = "id", direction = "desc", search = "", activeStatus }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState(search);
     const [debouncedSearch, setDebouncedSearch] = useState(search);
@@ -56,6 +57,7 @@ export default function Index({ rooms, sort = "id", direction = "desc", search =
             isFirstRender.current = false;
             return;
         }
+        console.log(rooms);
 
         router.get("/room", { search: debouncedSearch, sort, direction, shopId, status }, { preserveState: true, replace: true });
     }, [debouncedSearch, sort, direction, shopId, status]);
@@ -132,6 +134,7 @@ export default function Index({ rooms, sort = "id", direction = "desc", search =
                                     <TableHead className="px-4 py-3 text-left text-white text-xs uppercase">Room Number</TableHead>
                                     <TableHead className="px-4 py-3 text-left text-white text-xs uppercase">Name</TableHead>
                                     <TableHead className="px-4 py-3 text-left text-white text-xs uppercase">Type</TableHead>
+                                    <TableHead className="px-4 py-3 text-left text-white text-xs uppercase">Amenities</TableHead>
                                     <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">Image</TableHead>
                                     <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">Status</TableHead>
                                     <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">Is Active</TableHead>
@@ -145,6 +148,12 @@ export default function Index({ rooms, sort = "id", direction = "desc", search =
                                         <TableCell className="px-4 py-3 text-left min-w-[150px] w-[150px] max-w-[150px]">{room.room_number}</TableCell>
                                         <TableCell className="px-4 py-3 text-left w-full min-w-[100px]">{room.name}</TableCell>
                                         <TableCell className="px-4 py-3 text-left min-w-[150px] w-[150px] max-w-[150px]">{room.type}</TableCell>
+                                        <TableCell className="px-4 py-3 text-left min-w-[200px] w-[200px] max-w-[200px] flex gap-1 overflow-x-auto">{room.room_amenities?.map(a => (
+                                            <span key={a.id} className="text-[10px] px-2 py-1 bg-gray-50 border rounded">
+                                            {a.amenity?.name}
+                                            </span>
+                                             ))}
+                                        </TableCell>
                                         <TableCell className="px-4 py-3 text-center min-w-[100px] w-[100px] max-w-[100px]">
                                             {typeof room.image === "string" && room.image ? (
                                                 <a
@@ -218,7 +227,7 @@ export default function Index({ rooms, sort = "id", direction = "desc", search =
                 </div>
             </div>
 
-            <CreateUpdate isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} roomToUpdate={roomToupdate} />
+            <CreateUpdate isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} amenities={amenities} roomToUpdate={roomToupdate} />
         </AppLayout>
     );
 }

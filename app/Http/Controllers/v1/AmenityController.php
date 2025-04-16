@@ -31,8 +31,9 @@ class AmenityController extends Controller
             $direction = $request->get('direction', 'desc');
             $perPage = $request->get('per_page', 10);
             $search = $request->get('search');
+            $status = $request->get('status') ?? 'all';
 
-            $amenities = $this->amenityService->getAmenities($sort, $direction, $perPage, $search);
+            $amenities = $this->amenityService->getAmenities($sort, $direction, $perPage, $search, $status);
 
             return Inertia::render('admin/amenity/index', [
                 'amenities' => $amenities,

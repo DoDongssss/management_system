@@ -19,10 +19,48 @@ class AmenityService
     /**
      * Get paginated amenities with optional search and sorting.
      */
-    public function getAmenities($sort = 'id', $direction = 'desc', $perPage = 10, $search = null)
+    public function getActiveAmenities()
     {
         try {
             return $this->amenity
+                ->where('is_active', 1)
+                ->select('id', 'name', 'icon')
+                ->get();
+        } catch (Exception $e) {
+            Log::error("Error fetching amenities: " . $e->getMessage());
+            return collect();
+        }
+    }
+    // public function getActiveAmenities()
+    // {
+    //     try {
+    //         return $this->amenity
+    //             ->where('is_active', 1)
+    //             ->select('id', 'name', 'icon')
+    //             ->get()
+    //             ->map(function($item) {
+    //                 return [
+    //                     'label' => $item->name,   // Set name as label
+    //                     'value' => (string) $item->id, // Set id as value, ensure it's a string
+    //                     'icon' => $item->icon ?? null, // Ensure icon is either a string or null
+    //                 ];
+    //             });
+    //     } catch (Exception $e) {
+    //         Log::error("Error fetching amenities: " . $e->getMessage());
+    //         return collect();
+    //     }
+    // }
+
+    /**
+     * Get paginated amenities with optional search and sorting.
+     */
+    public function getAmenities($sort = 'id', $direction = 'desc', $perPage = 10, $search = null, $status = 'all')
+    {
+        try {
+            return $this->amenity
+                ->when($status !== "all", function ($q) use ($status) {
+                    $q->where('is_active',  (int) $status);
+                })
                 ->when($search, fn($q) => $q->where('name', 'LIKE', "%{$search}%"))
                 ->orderBy('is_active', 'desc')
                 ->orderBy($sort, $direction)

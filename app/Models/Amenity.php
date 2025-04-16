@@ -9,9 +9,17 @@ class Amenity extends Model
 {
     use HasFactory;
 
+    protected $table = 'amenities';
+
     protected $fillable = [
         'name',
         'icon',
         'is_active',
     ];
+
+    public function rooms()
+{
+    return $this->belongsToMany(Room::class, 'room_amenity')
+        ->withPivot('is_active');
+}
 }

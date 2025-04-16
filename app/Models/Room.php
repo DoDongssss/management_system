@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\RoomAmenity;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Room extends Model
 {
     use HasFactory;
+
+    protected $table = 'rooms';
 
     protected $fillable = [
         'room_number',
@@ -17,4 +20,9 @@ class Room extends Model
         'status',
         'is_active',
     ];
+
+    public function roomAmenities()
+    {
+        return $this->hasMany(RoomAmenity::class);
+    }
 }

@@ -157,3 +157,9 @@
         @apply bg-background text-foreground;
     }
 }
+
+
+.multi-select-dropdown {
+    z-index: 9999 !important;
+    position: relative !important;
+  }

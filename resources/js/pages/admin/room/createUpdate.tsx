@@ -22,15 +22,21 @@ import {
   SelectContent,
 } from "@/components/ui/select";
 
-import { type Room } from "@/types/room";
+import { MultiSelect } from "@/components/multi-select";
+import { Cat, Dog, Fish, Rabbit, Turtle } from "lucide-react";
 
+import { type Room, PartialRoom } from "@/types/room";
+import { type Amenity, AmenityMultiSelect } from "@/types/amentiy";
+
+// Adjusted the type definition for amenities prop
 interface CreateUpdateRoomProps {
   isOpen: boolean;
   onClose: () => void;
+  amenities: AmenityMultiSelect[]; 
   roomToUpdate?: Room | null;
 }
 
-const initialRoomData: Partial<Room> = {
+const initialRoomData: Partial<PartialRoom> = {
   id: null,
   room_number: "",
   name: "",
@@ -39,14 +45,24 @@ const initialRoomData: Partial<Room> = {
   image_path: "",
   status: "VACANT",
   is_active: 1,
+  room_amenities: null,
 };
 
-export default function CreateUpdateRoom({ isOpen, onClose, roomToUpdate }: CreateUpdateRoomProps) {
-  const { data, setData, post, reset, errors, processing } = useForm<Partial<Room>>(initialRoomData);
+export default function CreateUpdateRoom({
+  isOpen,
+  onClose,
+  amenities,
+  roomToUpdate,
+}: CreateUpdateRoomProps) {
+  const { data, setData, post, reset, errors, processing } = useForm<Partial<PartialRoom>>(initialRoomData);
   const [isActive, setIsActive] = useState(data.is_active === 1);
+
+  const [selectedAmenities, setSelectedAmenities] = useState<any[]>([]);
 
   useEffect(() => {
     if (roomToUpdate?.id) {
+      setSelectedAmenities(roomToUpdate.room_amenities?.map((ra) => ra.amenity_id) || []);
+
       setData({
         id: roomToUpdate.id,
         room_number: roomToUpdate.room_number || "",
@@ -56,6 +72,7 @@ export default function CreateUpdateRoom({ isOpen, onClose, roomToUpdate }: Crea
         image_path: roomToUpdate.image?.toString() || "",
         status: roomToUpdate.status || "VACANT",
         is_active: roomToUpdate.is_active ? 1 : 0,
+        room_amenities: roomToUpdate.room_amenities?.map((ra) => ra.amenity_id).join(",") || ""
       });
       setIsActive(roomToUpdate.is_active ? true : false);
     } else {
@@ -63,12 +80,15 @@ export default function CreateUpdateRoom({ isOpen, onClose, roomToUpdate }: Crea
     }
   }, [roomToUpdate]);
 
+  useEffect(() => { 
+    setData("room_amenities", selectedAmenities.length > 0 ? selectedAmenities.map((a) => String(a)).join(",") : "");
+  }, [selectedAmenities]);
+
   const handleStatusChange = () => {
     setIsActive((prev) => !prev);
     setData("is_active", isActive ? 0 : 1);
   };
 
-  
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     setData("image", file);
@@ -77,11 +97,13 @@ export default function CreateUpdateRoom({ isOpen, onClose, roomToUpdate }: Crea
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log(data);
     post(
       roomToUpdate?.id ? route("room.update", roomToUpdate.id) : route("room.store"),
       {
         onSuccess: () => {
           toast.success(roomToUpdate?.id ? "Room updated successfully!" : "Room created successfully!");
+          setData(initialRoomData);
           onClose();
         },
         onError: (err) => Object.values(err).forEach((error: any) => toast.error(error)),
@@ -137,6 +159,20 @@ export default function CreateUpdateRoom({ isOpen, onClose, roomToUpdate }: Crea
             {errors.type && <p className="text-red-500 text-sm">{errors.type}</p>}
           </div>
 
+          <div className="max-w-xl">
+            <Label htmlFor="ameneties">Ameneties</Label>
+            <MultiSelect
+              options={amenities}
+              onValueChange={setSelectedAmenities}
+              defaultValue={selectedAmenities}
+              placeholder="Select Amenities"
+              variant="inverted"
+              animation={2}
+              maxCount={5}
+            />
+            {errors.image && <p className="text-red-500 text-sm">{errors.image}</p>}
+          </div>
+
           <div>
             <Label htmlFor="image">Image</Label>
             <Input id="image" type="file" accept="image/*" onChange={handleImageChange} disabled={processing} />
@@ -148,7 +184,7 @@ export default function CreateUpdateRoom({ isOpen, onClose, roomToUpdate }: Crea
                   rel="noopener noreferrer"
                   className="text-gray-600 text-sm underline hover:text-blue-600 transition-all"
                 >
-                  Image: {data.image_path.split('/').pop()}
+                  Image: {data.image_path.split("/").pop()}
                 </a>
               </div>
             )}
