@@ -17,7 +17,7 @@ class RoomService
         $this->room = $room;
     }
 
-    public function getActiveRooms(): \Illuminate\Support\Collection
+    public function getActiveRooms()
     {
         try {
             return $this->room->where('is_active', 1)->select('id', 'room_number', 'name')->get();
@@ -26,36 +26,44 @@ class RoomService
         }
     }
 
-    public function getActiveRoomsWithBookingStatus()
+    public function getActiveRoomsWithBookingStatus($search = null, $status = "all")
     {
-        // dd($this->room
-        //     ->with([
-        //         'rates',
-        //         'booking' => function ($query) {
-        //             $query->where('status', 'active');
-        //         },
-        //         'booking.tenant'
-        //     ])
-        //     ->where('is_active', 1)
-        //     ->get());
         try {
-            
             return $this->room
-                        ->with([
-                            'rates',
-                            'booking' => function ($query) {
-                                $query->where('status', 'active');
-                            },
-                            'booking.tenant'
-                        ])
-                        ->where('is_active', 1)
-                        ->get();
-
+                ->with([
+                    'rates',
+                    'booking' => function ($query) {
+                        $query->where('status', 'active');
+                    },
+                    'booking.tenant'
+                ])
+                ->where('is_active', 1)
+                ->when($search, function ($q) use ($search) {
+                    $q->where(function ($q) use ($search) {
+                        $q->where('room_number', 'LIKE', "%{$search}%")
+                        ->orWhere('name', 'LIKE', "%{$search}%");
+                    });
+                })
+                ->when($status === '1' || $status === true, function ($q) {
+                    // Only rooms that have at least one active booking
+                    $q->whereHas('booking', function ($query) {
+                        $query->where('status', 'active');
+                    });
+                })
+                ->when($status === '0' || $status === false, function ($q) {
+                    // Only rooms that have NO active booking
+                    $q->whereDoesntHave('booking', function ($query) {
+                        $query->where('status', 'active');
+                    });
+                })
+                ->get();
 
         } catch (\Exception $e) {
-            return collect(); // return an empty collection on error
+            return collect(); // Return an empty collection on error
         }
     }
+
+
 
 
     /**
