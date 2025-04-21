@@ -71,7 +71,7 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
       isFirstRender.current = false;
       return;
     }
-    // router.get("/booking", { search: debouncedSearch, status }, { preserveState: true, replace: true });
+    router.get("/booking", { search: debouncedSearch, status }, { preserveState: true, replace: true });
   }, [debouncedSearch, status]);
 
   useEffect(() => {
@@ -184,8 +184,8 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
               >
                 <div className="w-full flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-gray-400">{room.name}</span>
-                  <div className={clsx("text-xs px-3 py-0.5 rounded-full font-semibold", room.is_active ? "bg-green-100 text-green-600" : "bg-gray-200 text-gray-500")}>
-                    {room.is_active ? "Active" : "Inactive"}
+                  <div className={clsx("text-xs px-3 py-0.5 rounded-full font-semibold", hasActiveBooking ? "bg-green-500 text-white" : "bg-red-500 text-white")}>
+                    {hasActiveBooking ? "Occupied" : "Vacant"}
                   </div>
                 </div>
 
@@ -224,24 +224,24 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
         <AlertDialog open={!!dialogRoom} onOpenChange={(isOpen) => !isOpen && setDialogRoom(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Booking Overdue</AlertDialogTitle>
+              <AlertDialogTitle>Checkout Booking?</AlertDialogTitle>
               <AlertDialogDescription>
-                The booking for <strong>{dialogRoom.name}</strong> has passed its check-out time.
+                The booking for <strong>{dialogRoom.name}</strong> is ready for checkout. Do you want to proceed with the checkout?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setDialogRoom(null)}>Ignore</AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setDialogRoom(null)}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
                   handleCheckout(dialogRoom);
                   setDialogRoom(null);
                 }}
               >
-                Acknowledge
+                Yes, Checkout
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
-        </AlertDialog>
+        </AlertDialog>      
       )}
 
       <CreateBookingDialog isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} room={selectedRoom} />

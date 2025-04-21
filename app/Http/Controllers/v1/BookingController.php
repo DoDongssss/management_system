@@ -50,7 +50,6 @@ class BookingController extends Controller
 
     public function updateBookingStatus(Request $request, $id): RedirectResponse
     {
-        // dd($id);
         try {
             $this->bookingService->updateStatus($id, 'completed');
 
