@@ -41,6 +41,7 @@ class RoomController extends Controller
 
             return Inertia::render('admin/room/index', [
                 'rooms' => $rooms,
+                'activeRooms' => $this->roomService->getActiveRooms(),
                 'amenities' => $amenities,
                 'filters' => compact('sort', 'direction', 'perPage', 'search', 'status'),
             ]);

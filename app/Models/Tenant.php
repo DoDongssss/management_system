@@ -6,16 +6,16 @@ use App\Models\Amenity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Rate extends Model
+class Tenant extends Model
 {
     use HasFactory;
 
-    protected $table = 'rates';
+    protected $table = 'tenants';
 
     protected $fillable = [
-        'room_id',
-        'durations_hours',
-        'price',
+        'name',
+        'contact',
+        'address',
         'is_active',
     ];
 

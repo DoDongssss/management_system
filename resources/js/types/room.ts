@@ -1,4 +1,6 @@
 import { type Amenity, RoomAmenities } from "./amentiy";
+import { type RoomRate } from "./rate";
+import { Booking } from "./booking";
 
 export interface Room {
     id: number | null;
@@ -10,6 +12,8 @@ export interface Room {
     status: string;
     is_active: number | boolean;
     room_amenities?: RoomAmenities[] | null;
+    rates?: RoomRate[] | null;
+    booking?: Booking[] | null;
 }
 
 export interface PartialRoom {

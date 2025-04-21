@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class AmenityRequest extends FormRequest
+class BookingRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,14 +21,8 @@ class AmenityRequest extends FormRequest
      */
     public function rules(): array
     {
-        $amenityId = $this->route('id');
         return [
-            'name' => [
-                'required',
-                'string',
-                'max:250',
-                Rule::unique('rooms', 'room_number')->ignore($amenityId),
-            ],
+            'name'          => 'required|integer'
             'icon'          => 'nullable|string|max:255',
             'is_active'     => 'nullable|boolean',
         ];

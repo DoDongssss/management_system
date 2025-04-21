@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/select";
 
 import { MultiSelect } from "@/components/multi-select";
-import { Cat, Dog, Fish, Rabbit, Turtle } from "lucide-react";
 
 import { type Room, PartialRoom } from "@/types/room";
 import { type Amenity, AmenityMultiSelect } from "@/types/amentiy";

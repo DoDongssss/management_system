@@ -11,7 +11,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search, House, AlarmSmoke } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Menu, Search, House, AlarmSmoke, Calendar } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -30,6 +30,11 @@ const mainNavItems: NavItem[] = [
         title: 'Amenity',
         href: '/amenity',
         icon: AlarmSmoke,
+    },
+    {
+        title: 'Booking',
+        href: '/booking',
+        icon: Calendar,
     },
 ];
 
