@@ -33,6 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // BOOKING ROUTES
     Route::get('booking', [BookingController::class, 'index'])->name('booking.index');
+    Route::post('booking', [BookingController::class, 'store'])->name('booking.store');
     Route::post('/booking/{room}/checkout', [BookingController::class, 'updateBookingStatus'])->name('booking.update');
 });
 

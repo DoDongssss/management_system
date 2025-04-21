@@ -139,31 +139,31 @@ export default function Index({ activeRooms, rooms, amenities, sort = "id", dire
                         <Table className="w-full">
                             <TableHeader className="border-b bg-blue-600 group">
                                 <TableRow>
-                                    <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">ID</TableHead>
-                                    <TableHead className="px-4 py-3 text-left text-white text-xs uppercase">Room Number</TableHead>
-                                    <TableHead className="px-4 py-3 text-left text-white text-xs uppercase">Name</TableHead>
-                                    <TableHead className="px-4 py-3 text-left text-white text-xs uppercase">Type</TableHead>
-                                    <TableHead className="px-4 py-3 text-left text-white text-xs uppercase">Amenities</TableHead>
-                                    <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">Image</TableHead>
-                                    <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">Status</TableHead>
-                                    <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">Is Active</TableHead>
-                                    <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">Actions</TableHead>
+                                    <TableHead className="px-4 py-1 text-center text-white text-xs uppercase">ID</TableHead>
+                                    <TableHead className="px-4 py-1 text-left text-white text-xs uppercase">Room Number</TableHead>
+                                    <TableHead className="px-4 py-1 text-left text-white text-xs uppercase">Name</TableHead>
+                                    <TableHead className="px-4 py-1 text-left text-white text-xs uppercase">Type</TableHead>
+                                    <TableHead className="px-4 py-1 text-left text-white text-xs uppercase">Amenities</TableHead>
+                                    <TableHead className="px-4 py-1 text-center text-white text-xs uppercase">Image</TableHead>
+                                    <TableHead className="px-4 py-1 text-center text-white text-xs uppercase">Status</TableHead>
+                                    <TableHead className="px-4 py-1 text-center text-white text-xs uppercase">Is Active</TableHead>
+                                    <TableHead className="px-4 py-1 text-center text-white text-xs uppercase">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {filteredRooms.map((room) => (
                                     <TableRow key={room.id}>
-                                        <TableCell className="px-4 py-3 text-center min-w-[80px] w-[80px] max-w-[80px]">{room.id}</TableCell>
-                                        <TableCell className="px-4 py-3 text-left min-w-[150px] w-[150px] max-w-[150px]">{room.room_number}</TableCell>
-                                        <TableCell className="px-4 py-3 text-left w-full min-w-[100px]">{room.name}</TableCell>
-                                        <TableCell className="px-4 py-3 text-left min-w-[150px] w-[150px] max-w-[150px]">{room.type}</TableCell>
-                                        <TableCell className="px-4 py-3 text-left min-w-[200px] w-[200px] max-w-[200px] flex gap-1 overflow-x-auto">{room.room_amenities?.map(a => (
+                                        <TableCell className="px-4 py-1 text-center min-w-[80px] w-[80px] max-w-[80px]">{room.id}</TableCell>
+                                        <TableCell className="px-4 py-1 text-left min-w-[150px] w-[150px] max-w-[150px]">{room.room_number}</TableCell>
+                                        <TableCell className="px-4 py-1 text-left w-full min-w-[100px]">{room.name}</TableCell>
+                                        <TableCell className="px-4 py-1 text-left min-w-[150px] w-[150px] max-w-[150px]">{room.type}</TableCell>
+                                        <TableCell className="px-4 py-1 text-left min-w-[200px] w-[200px] max-w-[200px] flex gap-1 overflow-x-auto">{room.room_amenities?.map(a => (
                                             <span key={a.id} className="text-[10px] px-2 py-1 bg-gray-50 border rounded">
                                             {a.amenity?.name}
                                             </span>
                                              ))}
                                         </TableCell>
-                                        <TableCell className="px-4 py-3 text-center min-w-[100px] w-[100px] max-w-[100px]">
+                                        <TableCell className="px-4 py-1 text-center min-w-[100px] w-[100px] max-w-[100px]">
                                             {typeof room.image === "string" && room.image ? (
                                                 <a
                                                     href={`/storage/${room.image}`}
@@ -178,20 +178,30 @@ export default function Index({ activeRooms, rooms, amenities, sort = "id", dire
                                                 <span className="text-gray-400 italic">No Image</span>
                                             )}
                                         </TableCell>
-                                        <TableCell className="px-4 py-3 text-center min-w-[120PX] w-[120PX] max-w-[120PX]">
+                                        <TableCell className="px-4 py-1 text-center min-w-[120PX] w-[120PX] max-w-[120PX]">
                                             <span className={clsx("px-2 py-1 rounded text-xs font-medium", room.status == "VACANT" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
                                                 { room.status }
                                             </span>
                                         </TableCell>
-                                        <TableCell className="px-4 py-3 text-center min-w-[120PX] w-[120PX] max-w-[120PX]">
+                                        <TableCell className="px-4 py-1 text-center min-w-[120PX] w-[120PX] max-w-[120PX]">
                                             <span className={clsx("px-2 py-1 rounded text-xs font-medium", room.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
                                                 {room.is_active ? "ACTIVE" : "INACTIVE"}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="px-4 py-3 flex justify-center gap-2 min-w-[150px] w-[150px] max-w-[150px]">
-                                            <Button variant="outline" size="icon" onClick={() => { setRoomRates(room?.rates); setIsShowRateModalOpen(true); }}>
-                                                <ClockAlert size={14} className="text-orange-500"/>
+                                        <TableCell className="px-4 py-1 flex justify-end gap-2 min-w-[150px] w-[150px] max-w-[150px]">
+                                            {room?.rates?.length > 0 && (
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => {
+                                                setRoomRates(room.rates);
+                                                setIsShowRateModalOpen(true);
+                                                }}
+                                            >
+                                                <ClockAlert size={14} className="text-orange-500" />
                                             </Button>
+                                            )}
+
                                             <Button variant="outline" size="icon" onClick={() => { setRoomToupdate(room); setIsModalOpen(true); }}>
                                                 <Pencil size={14} className="text-blue-500"/>
                                             </Button>
