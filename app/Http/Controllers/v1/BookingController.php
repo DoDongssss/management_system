@@ -65,9 +65,17 @@ class BookingController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        //
+        try {
+            $this->bookingService->createBooking($request->all());
+
+            return redirect()->route('booking.index')->with('success', 'Booking created successfully!');
+        } catch (Exception $e) {
+            Log::error("Error creating booking: " . $e->getMessage());
+
+            return redirect()->route('booking.index')->with('error', 'Failed to create amenity.');
+        }
     }
 
     /**

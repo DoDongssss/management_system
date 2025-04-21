@@ -122,25 +122,25 @@ export default function Index({ amenities, sort = "id", direction = "desc", sear
                         <Table className="w-full">
                             <TableHeader className="border-b bg-blue-600 group">
                                 <TableRow>
-                                    <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">ID</TableHead>
-                                    <TableHead className="px-4 py-3 text-left text-white text-xs uppercase">Name</TableHead>
-                                    <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">Icon</TableHead>
-                                    <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">Is Active</TableHead>
-                                    <TableHead className="px-4 py-3 text-center text-white text-xs uppercase">Actions</TableHead>
+                                    <TableHead className="px-4 py-1 text-center text-white text-xs uppercase">ID</TableHead>
+                                    <TableHead className="px-4 py-1 text-left text-white text-xs uppercase">Name</TableHead>
+                                    <TableHead className="px-4 py-1 text-center text-white text-xs uppercase">Icon</TableHead>
+                                    <TableHead className="px-4 py-1 text-center text-white text-xs uppercase">Is Active</TableHead>
+                                    <TableHead className="px-4 py-1 text-center text-white text-xs uppercase">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {filteredAmenities.map((amenity) => (
                                     <TableRow key={amenity.id}>
-                                        <TableCell className="px-4 py-3 text-center min-w-[80px] w-[80px] max-w-[80px]">{amenity.id}</TableCell>
-                                        <TableCell className="px-4 py-3 text-left w-full">{amenity.name}</TableCell>
-                                        <TableCell className="px-4 py-3 text-center min-w-[150px] w-[150px] max-w-[100px]">{amenity.icon ?? '-'}</TableCell>
-                                        <TableCell className="px-4 py-3 text-center min-w-[100px] w-[100px] max-w-[100px]">
+                                        <TableCell className="px-4 py-1 text-center min-w-[80px] w-[80px] max-w-[80px]">{amenity.id}</TableCell>
+                                        <TableCell className="px-4 py-1 text-left w-full">{amenity.name}</TableCell>
+                                        <TableCell className="px-4 py-1 text-center min-w-[150px] w-[150px] max-w-[100px]">{amenity.icon ?? '-'}</TableCell>
+                                        <TableCell className="px-4 py-1 text-center min-w-[100px] w-[100px] max-w-[100px]">
                                             <span className={clsx("px-2 py-1 rounded text-xs font-medium", amenity.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}> 
                                                 {amenity.is_active ? "ACTIVE" : "INACTIVE"}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="px-4 py-3 flex justify-center gap-2  min-w-[120px] w-[120px] max-w-[120px]">
+                                        <TableCell className="px-4 py-1 flex justify-center gap-2  min-w-[120px] w-[120px] max-w-[120px]">
                                             <Button variant="outline" size="icon" onClick={() => { setAmenityToUpdate(amenity); setIsModalOpen(true); }}>
                                                 <Pencil size={14} />
                                             </Button>

@@ -16,6 +16,7 @@ import {
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 import { type Room } from "@/types/room";
+import { PartialBooking } from "@/types/booking";
 
 
 interface Rate {
@@ -31,12 +32,13 @@ interface CreateBookingDialogProps {
   bookingToUpdate?: any | null;
 }
 
-const initialBookingData = {
+const initialBookingData: Partial<PartialBooking> = {
   name: "",
   contact: "",
   address: "",
-  room_id: "",
-  rate_id: "",
+  room_id: null,
+  total_duration_hours: 0,
+  total_amount: 0,
 };
 
 export default function CreateBookingDialog({
@@ -50,18 +52,9 @@ export default function CreateBookingDialog({
   const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    if (bookingToUpdate?.id) {
-      setData({
-        name: bookingToUpdate.tenant_name,
-        contact: bookingToUpdate.tenant_contact,
-        address: bookingToUpdate.tenant_address,
-        room_id: bookingToUpdate.room_id,
-        total_duration_hrs: ""
-      });
-    } else {
-      setData(initialBookingData);
-    }
-  }, [bookingToUpdate]);
+    setData('room_id', room.id)
+    setData(initialBookingData)
+  }, [bookingToUpdate, room]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,11 +64,22 @@ export default function CreateBookingDialog({
       {
         onSuccess: () => {
           toast.success(bookingToUpdate?.id ? "Booking updated successfully!" : "Booking created successfully!");
+          setData(initialBookingData);
           onClose();
         },
         onError: (err) => Object.values(err).forEach((error: any) => toast.error(error)),
       }
     );
+  };
+
+  const handleRateChange = (selectedRateId: string) => {
+    const selectedRate = room.rates?.find((rate: any) => rate.id === Number(selectedRateId));
+  
+    if (selectedRate) {
+      // console.log(selectedRate)
+      setData('total_duration_hours', selectedRate.durations_hours);
+      setData('total_amount', selectedRate.price);
+    }
   };
 
   return (
@@ -98,7 +102,6 @@ export default function CreateBookingDialog({
                         <Input
                             id="name"
                             type="text"
-                            value={data.name}
                             onChange={(e) => setData("name", e.target.value)}
                             disabled={processing}
                         />
@@ -110,7 +113,6 @@ export default function CreateBookingDialog({
                         <Input
                             id="contact"
                             type="text"
-                            value={data.contact}
                             onChange={(e) => setData("contact", e.target.value)}
                             disabled={processing}
                         />
@@ -122,7 +124,6 @@ export default function CreateBookingDialog({
                         <Input
                             id="tenant_address"
                             type="text"
-                            value={data.address}
                             onChange={(e) => setData("address", e.target.value)}
                             disabled={processing}
                         />
@@ -144,7 +145,7 @@ export default function CreateBookingDialog({
                         <div className="w-full">
                         <Label htmlFor="tenant_contact">Rate</Label>
                         {room.rates && room.rates.length > 0 ? (
-                          <Select>
+                          <Select onValueChange={(value) => handleRateChange(value)}>
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="Select Rate" />
                             </SelectTrigger>
@@ -164,16 +165,27 @@ export default function CreateBookingDialog({
                         </div>
 
                         <div className="w-full">
-                        <Label htmlFor="tenant_address">Total Hours</Label>
-                        <Input
-                            id="tenant_name"
-                            type="text"
-                            value={data.total_duration_hours}
-                            onChange={(e) => setData("total_duration_hours", e.target.value)}
-                            disabled={processing}
-                        />
-                        {errors.total_duration_hours && <p className="text-red-500 text-sm">{errors.total_duration_hours}</p>}
-                    </div>
+                          <Label htmlFor="total_duration_hours">Total Duration Hours</Label>
+                          <Input
+                              id="total_duration_hours"
+                              type="text"
+                              value={data.total_duration_hours}
+                              onChange={(e) => setData("total_duration_hours", e.target.value)}
+                              disabled={processing}
+                          />
+                          {errors.total_duration_hours && <p className="text-red-500 text-sm">{errors.total_duration_hours}</p>}
+                      </div>
+                      <div className="w-full">
+                          <Label htmlFor="total_amount">Total Amount</Label>
+                          <Input
+                              id="total_amount"
+                              type="text"
+                              value={data.total_amount}
+                              onChange={(e) => setData("total_amount", e.target.value)}
+                              disabled={processing}
+                          />
+                          {errors.total_amount && <p className="text-red-500 text-sm">{errors.total_amount}</p>}
+                      </div>
                 </div>
             </div>
          

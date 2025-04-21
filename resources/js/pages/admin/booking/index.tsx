@@ -60,7 +60,7 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
   const [searchQuery, setSearchQuery] = useState(search);
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [status, setStatus] = useState("all");
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(initialRoomData);
+  const [selectedRoom, setSelectedRoom] = useState<any>(initialRoomData);
   const isFirstRender = useRef(true);
   const [now, setNow] = useState(dayjs());
   const triggeredRoomsRef = useRef(new Set<number | null>());
@@ -102,14 +102,14 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
   }, [rooms]);
 
   const handleTimeUp = (room: Room) => {
-    toast.warning(`Booking for ${room.name} is overdue!`);
+    toast.warning(`Booking for ${room.room_number} is overdue!`);
   };
 
   const handleCheckout = (room: Room) => {
     const bookingId = room.booking?.[0]?.id;
 
     if (!bookingId) {
-    //   toast.warning("No active booking found.");
+      toast.warning("No active booking found.");
       return;
     }
 
@@ -117,7 +117,7 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
       `/booking/${bookingId}/checkout`,
       {},
       {
-        onSuccess: () => toast.success(`Successfully checked out room ${room.name}`),
+        onSuccess: () => toast.success(`Successfully checked out room ${room.room_number}`),
         onError: () => toast.error("Something went wrong during checkout."),
       }
     );
@@ -183,7 +183,7 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
                 }}
               >
                 <div className="w-full flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-400">Room</span>
+                  <span className="text-sm font-medium text-gray-400">{room.name}</span>
                   <div className={clsx("text-xs px-3 py-0.5 rounded-full font-semibold", room.is_active ? "bg-green-100 text-green-600" : "bg-gray-200 text-gray-500")}>
                     {room.is_active ? "Active" : "Inactive"}
                   </div>
@@ -191,7 +191,7 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
 
                 <div className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-1">
                   <DoorOpen size={18} />
-                  {room.name}
+                  {room.room_number}
                 </div>
 
                 <div className="flex flex-col gap-1 text-sm text-gray-600">

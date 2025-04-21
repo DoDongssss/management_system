@@ -72,6 +72,7 @@ export default function CreateUpdateRate({ isOpen, onClose, activeRooms, rateToU
       {
         onSuccess: () => {
           toast.success(rateToUpdate?.id ? "Room rate updated successfully!" : "Room rate created successfully!");
+          setData(initialRateData);
           onClose();
         },
         onError: (err) => Object.values(err).forEach((error: any) => toast.error(error)),
