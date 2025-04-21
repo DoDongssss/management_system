@@ -17,14 +17,54 @@ class RoomService
         $this->room = $room;
     }
 
+    public function getActiveRooms(): \Illuminate\Support\Collection
+    {
+        try {
+            return $this->room->where('is_active', 1)->select('id', 'room_number', 'name')->get();
+        } catch (\Exception $e) {
+            return collect(); // return an empty collection on error
+        }
+    }
+
+    public function getActiveRoomsWithBookingStatus()
+    {
+        // dd($this->room
+        //     ->with([
+        //         'rates',
+        //         'booking' => function ($query) {
+        //             $query->where('status', 'active');
+        //         },
+        //         'booking.tenant'
+        //     ])
+        //     ->where('is_active', 1)
+        //     ->get());
+        try {
+            
+            return $this->room
+                        ->with([
+                            'rates',
+                            'booking' => function ($query) {
+                                $query->where('status', 'active');
+                            },
+                            'booking.tenant'
+                        ])
+                        ->where('is_active', 1)
+                        ->get();
+
+
+        } catch (\Exception $e) {
+            return collect(); // return an empty collection on error
+        }
+    }
+
+
     /**
      * Get paginated rooms with optional search and sorting.
      */
     public function getRooms($sort = 'id', $direction = 'desc', $perPage = 10, $search = null, $status = "all")
     {
-        // dd($status);
         try {
-            $query = $this->room->with(['roomAmenities', 'roomAmenities.amenity'])
+            $query = $this->room->with(['roomAmenities', 'roomAmenities.amenity', 'rates'])
                 ->when($status !== "all", function ($q) use ($status) {
                     $q->where('is_active',  (int) $status);
                 })
@@ -36,6 +76,7 @@ class RoomService
                 })
                 ->orderBy('is_active', 'desc')
                 ->orderBy($sort, $direction);
+                // dd($query->paginate($perPage));
             return $query->paginate($perPage);
         } catch (Exception $e) {
             Log::error("Error fetching rooms: " . $e->getMessage());

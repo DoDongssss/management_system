@@ -23,4 +23,9 @@ class RoomAmenity extends Model
         return $this->belongsTo(Amenity::class);
     }
 
+    public function room()
+    {
+        return $this->belongsTo(Room::class);
+    }
+
 }
