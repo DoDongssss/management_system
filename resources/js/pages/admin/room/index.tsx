@@ -17,13 +17,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Pencil, Trash, Upload } from "lucide-react";
+import { Pencil, Trash, Upload, ClockAlert } from "lucide-react";
 
 import { type BreadcrumbItem } from "@/types";
 import { type Room, RoomPaginatedResponse } from "@/types/room";
 import { type Amenity, AmenityMultiSelect, AmenityPaginatedResponse } from "@/types/amentiy";
+import { type RoomRate } from "@/types/rate";
 
 import CreateUpdate from "./createUpdate";
+import CreateUpdateRate from "../room/createUpdateRates";
+import ShowRate from "./showRates";
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: "Room", href: "/room" }];
 const statuses = [
@@ -33,8 +36,10 @@ const statuses = [
 ];
 
 const emptyRoom: Room = { id: null, room_number: "", name: "", type: "", image: "", status: "", is_active: 1 };
+const emptyRate: RoomRate = { id: null, room_id: "", durations_hours: "", price: "", is_active: 1 };
 
 interface Props {
+    activeRooms: Room[];
     rooms: RoomPaginatedResponse;
     amenities: AmenityMultiSelect[];
     sort?: string;
@@ -43,13 +48,17 @@ interface Props {
     activeStatus?: string | boolean | number;
 }
 
-export default function Index({ rooms, amenities, sort = "id", direction = "desc", search = "", activeStatus }: Props) {
+export default function Index({ activeRooms, rooms, amenities, sort = "id", direction = "desc", search = "", activeStatus }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isRateModalOpen, setIsRateModalOpen] = useState(false);
+    const [isShowRateModalOpen, setIsShowRateModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState(search);
     const [debouncedSearch, setDebouncedSearch] = useState(search);
     const [shopId, setShopId] = useState<string>("all");
     const [status, setStatus] = useState("all");
     const [roomToupdate, setRoomToupdate] = useState<Room>(emptyRoom);
+    const [rateToUpdate, setRateToUpdate] = useState<RoomRate>(emptyRate);
+    const [roomRates, setRoomRates] = useState<RoomRate[] | null | undefined | []>([]);
     const isFirstRender = useRef<boolean>(true);
 
     useEffect(() => {
@@ -116,8 +125,8 @@ export default function Index({ rooms, amenities, sort = "id", direction = "desc
                         </Select>
                     </div>
                     <div className="flex gap-2">
-                        <Button onClick={() => { setIsModalOpen(true); setRoomToupdate(emptyRoom); }} variant="secondary">
-                            Add Amenities
+                        <Button onClick={() => { setIsRateModalOpen(true); setRateToUpdate(emptyRate); }} variant="outline">
+                            <span className="text-blue-500">Add Room Rate</span>
                         </Button>
                         <Button onClick={() => { setIsModalOpen(true); setRoomToupdate(emptyRoom); }} variant="default">
                             Create Room
@@ -180,8 +189,11 @@ export default function Index({ rooms, amenities, sort = "id", direction = "desc
                                             </span>
                                         </TableCell>
                                         <TableCell className="px-4 py-3 flex justify-center gap-2 min-w-[150px] w-[150px] max-w-[150px]">
+                                            <Button variant="outline" size="icon" onClick={() => { setRoomRates(room?.rates); setIsShowRateModalOpen(true); }}>
+                                                <ClockAlert size={14} className="text-orange-500"/>
+                                            </Button>
                                             <Button variant="outline" size="icon" onClick={() => { setRoomToupdate(room); setIsModalOpen(true); }}>
-                                                <Pencil size={14} />
+                                                <Pencil size={14} className="text-blue-500"/>
                                             </Button>
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
@@ -228,6 +240,8 @@ export default function Index({ rooms, amenities, sort = "id", direction = "desc
             </div>
 
             <CreateUpdate isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} amenities={amenities} roomToUpdate={roomToupdate} />
+            <CreateUpdateRate isOpen={isRateModalOpen} onClose={() => setIsRateModalOpen(false)} activeRooms={activeRooms} rateToUpdate={rateToUpdate} />
+            <ShowRate isOpen={isShowRateModalOpen} onClose={() => setIsShowRateModalOpen(false)} rates={roomRates} />
         </AppLayout>
     );
 }
