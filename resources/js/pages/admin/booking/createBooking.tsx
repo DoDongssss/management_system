@@ -53,7 +53,7 @@ export default function CreateBookingDialog({
 
   useEffect(() => {
     setData('room_id', room.id)
-    setData(initialBookingData)
+    // setData(initialBookingData)
   }, [bookingToUpdate, room]);
 
   const handleSubmit = (e: React.FormEvent) => {
