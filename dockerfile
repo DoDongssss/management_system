@@ -1,5 +1,5 @@
-# Multi-stage build for Laravel 12 + React + TypeScript + Inertia
-
+# Multi-stage build for Laravel + React + TypeScript + Inertia
+FROM node:18 as frontend
 # Stage 1: Build React/TypeScript assets
 FROM node:20-alpine AS frontend-builder
 
@@ -20,8 +20,8 @@ COPY public ./public
 # Build assets
 RUN npm run build
 
-# Stage 2: PHP Laravel 12 application
-FROM php:8.3-fpm-alpine
+# Stage 2: PHP Laravel application
+FROM php:8.2-fpm-alpine
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -41,7 +41,7 @@ RUN apk add --no-cache \
     mysql-client \
     netcat-openbsd
 
-# Install PHP extensions for Laravel 12
+# Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
         pdo \
@@ -71,20 +71,19 @@ COPY --from=frontend-builder /app/public/build ./public/build
 # Create www user
 RUN addgroup -g 1000 www && adduser -u 1000 -G www -s /bin/bash -D www
 
-# Install PHP dependencies (including dev dependencies for Pail)
-RUN composer install --optimize-autoloader --no-interaction
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Create necessary directories for Laravel 12
+# Create necessary directories
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 
 # Set permissions
 RUN chown -R www:www /var/www/html \
     && chmod -R 775 storage bootstrap/cache public/build
 
-# Copy and set up scripts
+# Copy startup script
 COPY docker/startup.sh /usr/local/bin/startup.sh
-COPY docker/fix-permissions.sh /usr/local/bin/fix-permissions.sh
-RUN chmod +x /usr/local/bin/startup.sh /usr/local/bin/fix-permissions.sh
+RUN chmod +x /usr/local/bin/startup.sh
 
 EXPOSE 9000
 
