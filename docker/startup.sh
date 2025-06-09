@@ -27,6 +27,53 @@ wait_for_mysql() {
     done
 }
 
+# Function to fix permissions comprehensively
+fix_permissions() {
+    echo "Fixing permissions comprehensively..."
+    
+    cd /var/www/html
+    
+    # Create all necessary directories
+    mkdir -p storage/logs
+    mkdir -p storage/framework/cache
+    mkdir -p storage/framework/sessions
+    mkdir -p storage/framework/views
+    mkdir -p storage/app/public
+    mkdir -p bootstrap/cache
+    mkdir -p public/storage
+    
+    # Set ownership to www user
+    chown -R www:www /var/www/html
+    
+    # Set directory permissions (775 for directories)
+    find /var/www/html/storage -type d -exec chmod 775 {} \;
+    find /var/www/html/bootstrap/cache -type d -exec chmod 775 {} \;
+    chmod 775 /var/www/html/public/build
+    
+    # Set file permissions (664 for files)
+    find /var/www/html/storage -type f -exec chmod 664 {} \;
+    find /var/www/html/bootstrap/cache -type f -exec chmod 664 {} \;
+    
+    # Ensure specific directories are writable
+    chmod -R 775 storage/framework/cache
+    chmod -R 775 storage/framework/sessions
+    chmod -R 775 storage/framework/views
+    chmod -R 775 storage/logs
+    chmod -R 775 bootstrap/cache
+    
+    # Create storage link if it doesn't exist
+    if [ ! -L "/var/www/html/public/storage" ]; then
+        php artisan storage:link
+    fi
+    
+    # Double-check ownership
+    chown -R www:www storage
+    chown -R www:www bootstrap/cache
+    chown -R www:www public/storage
+    
+    echo "Permissions fixed!"
+}
+
 # Function to setup Laravel 12
 setup_laravel() {
     cd /var/www/html
@@ -43,38 +90,11 @@ setup_laravel() {
         php artisan key:generate
     fi
     
-    # Set proper permissions - more aggressive approach
-    echo "Setting permissions..."
+    # Fix permissions before running any commands
+    fix_permissions
     
-    # Create directories if they don't exist
-    mkdir -p storage/logs
-    mkdir -p storage/framework/cache
-    mkdir -p storage/framework/sessions
-    mkdir -p storage/framework/views
-    mkdir -p bootstrap/cache
-    
-    # Set ownership recursively
-    chown -R www:www /var/www/html
-    
-    # Set permissions recursively
-    chmod -R 775 storage
-    chmod -R 775 bootstrap/cache
-    chmod -R 775 public/build
-    
-    # Set specific permissions for framework directories
-    chmod -R 775 storage/framework/cache
-    chmod -R 775 storage/framework/sessions
-    chmod -R 775 storage/framework/views
-    chmod -R 775 storage/logs
-    
-    # Double-check ownership
-    chown -R www:www storage
-    chown -R www:www bootstrap/cache
-    
-    # Laravel 12 specific optimizations
-    echo "Running Laravel 12 optimizations..."
-    
-    # Clear all caches
+    # Clear all caches first
+    echo "Clearing all caches..."
     php artisan config:clear
     php artisan cache:clear
     php artisan view:clear
@@ -91,6 +111,9 @@ setup_laravel() {
     # Publish any vendor assets if needed
     php artisan vendor:publish --all --force 2>/dev/null || true
     
+    # Create storage link again after migrations
+    php artisan storage:link
+    
     # Optimize for production
     echo "Optimizing for production..."
     php artisan config:cache
@@ -100,7 +123,42 @@ setup_laravel() {
     # Laravel 12 specific optimizations
     php artisan optimize
     
+    # Final permission check
+    fix_permissions
+    
     echo "Laravel 12 setup completed!"
+}
+
+# Function to handle common errors
+handle_errors() {
+    echo "Checking for common issues..."
+    
+    cd /var/www/html
+    
+    # Check if .env exists and has APP_KEY
+    if [ ! -f .env ]; then
+        echo "ERROR: .env file not found!"
+        cp .env.example .env
+        php artisan key:generate
+    fi
+    
+    # Check if storage is writable
+    if [ ! -w storage ]; then
+        echo "ERROR: Storage directory not writable!"
+        fix_permissions
+    fi
+    
+    # Check if bootstrap/cache is writable
+    if [ ! -w bootstrap/cache ]; then
+        echo "ERROR: Bootstrap cache not writable!"
+        fix_permissions
+    fi
+    
+    # Check if public/storage link exists
+    if [ ! -L "public/storage" ]; then
+        echo "Creating storage link..."
+        php artisan storage:link
+    fi
 }
 
 # Main execution
@@ -109,8 +167,14 @@ echo "Starting Laravel 12 application setup..."
 # Wait for MySQL
 wait_for_mysql
 
+# Handle any common errors
+handle_errors
+
 # Setup Laravel
 setup_laravel
+
+# Final permission check before starting
+fix_permissions
 
 # Start PHP-FPM
 echo "Starting PHP-FPM..."

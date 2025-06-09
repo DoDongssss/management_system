@@ -81,9 +81,10 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions sto
 RUN chown -R www:www /var/www/html \
     && chmod -R 775 storage bootstrap/cache public/build
 
-# Copy startup script
+# Copy and set up scripts
 COPY docker/startup.sh /usr/local/bin/startup.sh
-RUN chmod +x /usr/local/bin/startup.sh
+COPY docker/fix-permissions.sh /usr/local/bin/fix-permissions.sh
+RUN chmod +x /usr/local/bin/startup.sh /usr/local/bin/fix-permissions.sh
 
 EXPOSE 9000
 
