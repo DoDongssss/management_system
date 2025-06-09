@@ -28,5 +28,30 @@ chmod -R 775 /var/www/html/storage/framework/views
 chown -R www:www /var/www/html/storage
 chown -R www:www /var/www/html/bootstrap/cache
 
+# Switch to www user for Laravel commands
+su www -c "
+cd /var/www/html
+
+# Generate application key if not exists
+if [ -z \"\$(grep '^APP_KEY=' .env 2>/dev/null | cut -d '=' -f2 | tr -d '\"')\" ] || [ \"\$(grep '^APP_KEY=' .env 2>/dev/null | cut -d '=' -f2 | tr -d '\"')\" = \"\" ]; then
+    php artisan key:generate
+fi
+
+# Clear and optimize Laravel
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+php artisan route:clear
+php artisan optimize:clear
+
+# Run migrations
+php artisan migrate --force
+
+# Optimize for production
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+"
+
 # Execute the main command
 exec "$@" 
