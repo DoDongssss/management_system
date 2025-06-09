@@ -47,7 +47,7 @@ class RoomRateService
                 )
                 ->with('room:id,name') // eager load room relationship
                 ->orderBy('is_active', 'desc')
-                ->orderBy($sort, $direction)
+                ->orderBy('id', 'desc')
                 ->paginate($perPage);
         } catch (Exception $e) {
             Log::error("Error fetching room rates: " . $e->getMessage());

@@ -118,9 +118,9 @@ export default function Index({ amenities, sort = "id", direction = "desc", sear
                 </div>
 
                 {filteredAmenities.length > 0 ? (
-                    <div className="overflow-hidden border border-blue-500 rounded-lg w-full">
+                    <div className="overflow-hidden border border-blue-700 rounded-lg w-full">
                         <Table className="w-full">
-                            <TableHeader className="border-b bg-blue-600 group">
+                            <TableHeader className="border-b bg-blue-700 group">
                                 <TableRow>
                                     <TableHead className="px-4 py-1 text-center text-white text-xs uppercase">ID</TableHead>
                                     <TableHead className="px-4 py-1 text-left text-white text-xs uppercase">Name</TableHead>

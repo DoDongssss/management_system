@@ -31,26 +31,6 @@ class AmenityService
             return collect();
         }
     }
-    // public function getActiveAmenities()
-    // {
-    //     try {
-    //         return $this->amenity
-    //             ->where('is_active', 1)
-    //             ->select('id', 'name', 'icon')
-    //             ->get()
-    //             ->map(function($item) {
-    //                 return [
-    //                     'label' => $item->name,   // Set name as label
-    //                     'value' => (string) $item->id, // Set id as value, ensure it's a string
-    //                     'icon' => $item->icon ?? null, // Ensure icon is either a string or null
-    //                 ];
-    //             });
-    //     } catch (Exception $e) {
-    //         Log::error("Error fetching amenities: " . $e->getMessage());
-    //         return collect();
-    //     }
-    // }
-
     /**
      * Get paginated amenities with optional search and sorting.
      */
@@ -63,7 +43,7 @@ class AmenityService
                 })
                 ->when($search, fn($q) => $q->where('name', 'LIKE', "%{$search}%"))
                 ->orderBy('is_active', 'desc')
-                ->orderBy($sort, $direction)
+                ->orderBy('id', 'desc')
                 ->paginate($perPage);
         } catch (Exception $e) {
             Log::error("Error fetching amenities: " . $e->getMessage());

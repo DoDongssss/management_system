@@ -135,9 +135,9 @@ export default function Index({ activeRooms, rooms, amenities, sort = "id", dire
                 </div>
 
                 {filteredRooms.length > 0 ? (
-                    <div className="overflow-hidden border border-blue-500 rounded-lg w-full">
+                    <div className="overflow-hidden border border-blue-700 rounded-lg w-full">
                         <Table className="w-full">
-                            <TableHeader className="border-b bg-blue-600 group">
+                            <TableHeader className="border-b bg-blue-700 group">
                                 <TableRow>
                                     <TableHead className="px-4 py-1 text-center text-white text-xs uppercase">ID</TableHead>
                                     <TableHead className="px-4 py-1 text-left text-white text-xs uppercase">Room Number</TableHead>
@@ -169,7 +169,7 @@ export default function Index({ activeRooms, rooms, amenities, sort = "id", dire
                                                     href={`/storage/${room.image}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:text-blue-800 transition-colors inline-flex items-center gap-1"
+                                                    className="text-blue-700 transition-colors inline-flex items-center gap-1"
                                                 >
                                                     <Upload size={16} />
                                                     <span className="sr-only">View Image</span>
@@ -189,7 +189,7 @@ export default function Index({ activeRooms, rooms, amenities, sort = "id", dire
                                             </span>
                                         </TableCell>
                                         <TableCell className="px-4 py-1 flex justify-end gap-2 min-w-[150px] w-[150px] max-w-[150px]">
-                                            {room?.rates?.length > 0 && (
+                                            {(room?.rates?.length ?? 0) > 0 && (
                                             <Button
                                                 variant="outline"
                                                 size="icon"

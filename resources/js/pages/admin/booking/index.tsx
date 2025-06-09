@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Pencil, Trash, Upload, ClockAlert, CalendarCheck, CalendarX, User, DoorOpen } from "lucide-react";
+import { Pencil, Trash, Upload, ClockAlert, CalendarCheck, CalendarX, User, DoorOpen, Phone, Pin, ArrowLeftRight } from "lucide-react";
 
 import { type BreadcrumbItem } from "@/types";
 import { type Room, PartialRoom } from "@/types/room";
@@ -126,7 +126,7 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Room" />
-      <div className="flex flex-1 flex-col gap-3 p-6 items-center">
+      <div className="flex flex-1 flex-col gap-3 p-6 items-center max-h-screen">
         <div className="flex justify-between items-center mb-3 w-full">
           <div className="flex items-center gap-2 min-w-[420px]">
             <Input
@@ -170,7 +170,7 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
             return (
               <div
                 key={room.id || index}
-                className={`min-h-[160px] min-w-[calc(100%/5-13px)] bg-white border rounded-2xl p-4 shadow-md transition-all duration-200 
+                className={`min-h-[160px] min-w-[calc(100%/5-13px)] max-w-[calc(100%/5-13px)] bg-white border rounded-2xl p-4 shadow-md transition-all duration-200 
                   ${isOverdue ? "shadow-orange-200 border-orange-400 animate-pulse" : hasActiveBooking ? "shadow-green-200 border-green-400" : "shadow-red-200 border-red-300"}`}
                 onClick={() => {
                   const bookingId = room.booking?.[0]?.id;
@@ -196,8 +196,22 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
 
                 <div className="flex flex-col gap-1 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <User size={16} />
+                    <div className="w-[16px]">
+                      <User size={16} />
+                    </div>
                     <span>{hasActiveBooking ? activeBooking.tenant?.name : "Vacant"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[16px]">
+                      <Phone size={16} />
+                    </div>
+                    <span>{hasActiveBooking ? activeBooking.tenant?.contact : "--"}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-[16px]">
+                      <Pin size={16} />
+                    </div>
+                    <span>{hasActiveBooking ? activeBooking.tenant?.address : "--"}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CalendarCheck size={16} />
@@ -207,12 +221,10 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
                     <CalendarX size={16} />
                     <span>{checkOut ? checkOut.format("MMM D, YYYY h:mm A") : "--"}</span>
                   </div>
-                  {hasActiveBooking && (
-                    <div className="flex items-center gap-2 text-sm text-blue-600 font-semibold mt-1">
-                      <ClockAlert size={16} />
-                      <span>{durationText}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 text-sm text-blue-700 font-semibold mt-1">
+                    <ClockAlert size={16} />
+                    {hasActiveBooking ? durationText : "--:--:--"}
+                  </div>
                 </div>
               </div>
             );
@@ -224,7 +236,12 @@ export default function Index({ rooms, search = "", activeStatus }: Props) {
         <AlertDialog open={!!dialogRoom} onOpenChange={(isOpen) => !isOpen && setDialogRoom(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Checkout Booking?</AlertDialogTitle>
+              <AlertDialogTitle>
+                <div className="flex items-center justify-between">
+                  <span>Checkout Booking?</span>
+                  {/* <ArrowLeftRight/> */}
+                </div>
+              </AlertDialogTitle>
               <AlertDialogDescription>
                 The booking for <strong>{dialogRoom.name}</strong> is ready for checkout. Do you want to proceed with the checkout?
               </AlertDialogDescription>

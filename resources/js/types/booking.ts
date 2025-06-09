@@ -1,3 +1,4 @@
+import { Room } from "./room";
 import { type Tenant } from "./tenant";
 
 export interface Booking {
@@ -8,15 +9,25 @@ export interface Booking {
     total_amount: number | string;
     check_in?: any;
     check_out?: any;
-    status?: string;
+    status: string;
     is_active?: number; // 1 or 0
     created_at?: string;
     updated_at?: string;
-    tenant?: Tenant;
     name?: null | string;
     contact?: null | string;
     address?: null | string;
+    room?: Room 
+    tenant?: Tenant;
   }
+
+export interface BookingPaginatedResponse {
+    data: Booking[];
+    links: {
+        url: string | null;
+        label: string;
+        active: boolean;
+    }[];
+}
 
 
 export interface PartialBooking {

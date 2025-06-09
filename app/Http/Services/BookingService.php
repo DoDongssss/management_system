@@ -10,6 +10,41 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class BookingService
 {
+    protected Booking $booking;
+
+    public function __construct(Booking $booking)
+    {
+        $this->booking = $booking;
+    }
+
+    public function getAllBookings($search = null, $status = 'all')
+    {
+        try {
+            return $this->booking
+                ->with(['room', 'tenant'])
+                ->when(in_array($status, ['void', 'completed', 'active']), function ($q) use ($status) {
+                    $q->where('status', $status);
+                })
+                ->when($search, function ($q) use ($search) {
+                    $q->where(function ($query) use ($search) {
+                        $query->whereHas('room', function ($roomQuery) use ($search) {
+                            $roomQuery->where('room_number', 'LIKE', "%{$search}%")
+                                        ->orWhere('name', 'LIKE', "%{$search}%");
+                        })->orWhereHas('tenant', function ($tenantQuery) use ($search) {
+                            $tenantQuery->where('name', 'LIKE', "%{$search}%")
+                                        ->orWhere('contact', 'LIKE', "%{$search}%");
+                        });
+                    });
+                })
+                ->orderBy('id', 'desc')
+                ->paginate(10);
+        } catch (\Exception $e) {
+            Log::error("Failed to retrieve bookings: " . $e->getMessage());
+            return [];
+        }
+    }
+
+
     /**
      * Update the status of a booking.
      *
@@ -20,7 +55,7 @@ class BookingService
     public function updateStatus(int $bookingId, string $status): ?Booking
     {
         try {
-            $booking = Booking::findOrFail($bookingId);
+            $booking = $this->booking->findOrFail($bookingId);
             $booking->status = $status;
             $booking->save();
 
@@ -30,6 +65,23 @@ class BookingService
             return null;
         } catch (\Exception $e) {
             Log::error("Failed to update booking status: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function voidBooking(int $bookingId, string $status): ?Booking
+    {
+        try {
+            $booking = $this->booking->findOrFail($bookingId);
+            $booking->status = $status;
+            $booking->save();
+
+            return $booking;
+        } catch (ModelNotFoundException $e) {
+            Log::error("Booking not found: ID {$bookingId}");
+            return null;
+        } catch (\Exception $e) {
+            Log::error("Failed to void booking status: " . $e->getMessage());
             return null;
         }
     }
@@ -62,7 +114,7 @@ class BookingService
 
     
             // Step 4: Save booking
-            return Booking::create([
+            return $this->booking->create([
                 'tenant_id' => $tenant->id,
                 'room_id' => $data['room_id'],
                 'check_in' => $checkIn,

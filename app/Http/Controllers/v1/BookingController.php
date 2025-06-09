@@ -10,6 +10,7 @@ use App\Http\Services\BookingService;
 use App\Http\Services\RoomService;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\BookingRequest;
 use Illuminate\Http\RedirectResponse;
 
 class BookingController extends Controller
@@ -48,6 +49,28 @@ class BookingController extends Controller
         }
     }
 
+    public function getAllBookings(Request $request): Response
+    {
+        try {
+            $search = $request->get('search');
+            $status = $request->get('status') ?? 'all';
+
+            return Inertia::render('admin/transaction/index', [
+                'bookings' => $this->bookingService->getAllBookings($search
+                ,$status),
+                'filters' => compact('search', 'status'),
+            ]);
+        } catch (Exception $e) {
+            Log::error("Error fetching bookings: " . $e->getMessage());
+
+            return Inertia::render('admin/transaction/index', [
+                'bookings' => [],
+                'filters' => $request->only(['search', 'status']),
+                'error' => 'Failed to fetch bookings. Please try again.',
+            ]);
+        }
+    }
+
     public function updateBookingStatus(Request $request, $id): RedirectResponse
     {
         try {
@@ -61,10 +84,23 @@ class BookingController extends Controller
         }
     }
 
+    public function voidBooking(Request $request, $id): RedirectResponse
+    {
+        try {
+            $this->bookingService->voidBooking($id, 'void');
+
+            return redirect()->route('transaction.index')->with('success', 'Booking void successfully!');
+        } catch (Exception $e) {
+            Log::error("Error creating booking: " . $e->getMessage());
+
+            return redirect()->route('transaction.index')->with('error', 'Failed to void booking.');
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(BookingRequest $request): RedirectResponse
     {
         try {
             $this->bookingService->createBooking($request->all());

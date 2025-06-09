@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class BookingRequest extends FormRequest
+class TenantRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,13 +23,10 @@ class BookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'                  => 'required|string|max:255',
-            'contact'               => 'nullable|string|max:255',
-            'address'               => 'nullable|string|max:255',
-            'room_id'               => 'required|integer',
-            'total_duration_hours'  => 'required|integer',
-            'total_amount'          => 'required',
-            'is_active'             => 'nullable|boolean',
+            'name'          => 'nullable|string|max:255',
+            'contact'       => 'nullable|string|max:255',
+            'address'       => 'nullable|string|max:255',
+            'is_active'     => 'nullable|boolean',
         ];
     }
 }

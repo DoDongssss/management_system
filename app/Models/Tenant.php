@@ -19,4 +19,8 @@ class Tenant extends Model
         'is_active',
     ];
 
+    public function booking()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }
