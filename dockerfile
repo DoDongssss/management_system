@@ -1,42 +1,90 @@
-# Stage 1: Node build for React + TypeScript
-FROM node:18 AS frontend
+# Multi-stage build for Laravel 12 + React + TypeScript + Inertia
+
+# Stage 1: Build React/TypeScript assets
+FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
-RUN npm install
+COPY tsconfig.json ./
+COPY vite.config.ts ./
 
-COPY . .
+# Install dependencies
+RUN npm ci
+
+# Copy source files
+COPY resources ./resources
+COPY public ./public
+
+# Build assets
 RUN npm run build
 
-# Stage 2: PHP for Laravel
-FROM php:8.2-fpm
+# Stage 2: PHP Laravel 12 application
+FROM php:8.3-fpm-alpine
 
-# Install system dependencies including netcat
-RUN apt-get update && apt-get install -y \
-    git curl zip unzip nano netcat-traditional \
-    libpng-dev libonig-dev libxml2-dev libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql zip
+# Install system dependencies
+RUN apk add --no-cache \
+    bash \
+    git \
+    curl \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    libwebp-dev \
+    freetype-dev \
+    zip \
+    unzip \
+    icu-dev \
+    oniguruma-dev \
+    libxml2-dev \
+    libzip-dev \
+    mysql-client \
+    netcat-openbsd
+
+# Install PHP extensions for Laravel 12
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        intl \
+        mbstring \
+        zip \
+        xml \
+        opcache \
+        exif \
+        pcntl \
+        bcmath \
+        gd
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+# Set working directory
+WORKDIR /var/www/html
 
-# Copy project files
-COPY --from=frontend /app /var/www
+# Copy application files
+COPY . .
 
-# Create .env file from .env.example if .env doesn't exist
-RUN if [ ! -f .env ]; then cp .env.example .env; fi
+# Copy built assets from frontend stage
+COPY --from=frontend-builder /app/public/build ./public/build
 
-# Install Laravel dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Create www user
+RUN addgroup -g 1000 www && adduser -u 1000 -G www -s /bin/bash -D www
 
-# Set proper permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Copy wait script
-COPY docker/wait-for.sh /wait-for.sh
-RUN chmod +x /wait-for.sh
+# Create necessary directories for Laravel 12
+RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 
-CMD ["/wait-for.sh"]
+# Set permissions
+RUN chown -R www:www /var/www/html \
+    && chmod -R 775 storage bootstrap/cache public/build
+
+# Copy startup script
+COPY docker/startup.sh /usr/local/bin/startup.sh
+RUN chmod +x /usr/local/bin/startup.sh
+
+EXPOSE 9000
+
+CMD ["/usr/local/bin/startup.sh"]
