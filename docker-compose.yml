@@ -5,7 +5,8 @@ services:
     volumes:
       - .:/var/www/html
       - /var/www/html/vendor
-      - ./storage:/var/www/html/storage
+      - storage_data:/var/www/html/storage
+      - cache_data:/var/www/html/bootstrap/cache
     ports:
       - '9000:9000'
     environment:
@@ -22,6 +23,8 @@ services:
     volumes:
       - .:/var/www/html
       - /var/www/html/vendor
+      - storage_data:/var/www/html/storage
+      - cache_data:/var/www/html/bootstrap/cache
     depends_on:
       - app
 
@@ -41,3 +44,5 @@ services:
 
 volumes:
   db_data:
+  storage_data:
+  cache_data:

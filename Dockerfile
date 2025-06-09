@@ -78,12 +78,14 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions sto
     && chmod -R 775 public/build \
     && chmod -R 775 storage/framework/cache storage/framework/sessions storage/framework/views
 
-# Copy and set up startup script
+# Copy and set up scripts
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY docker/start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start.sh
 
 EXPOSE 9000
 
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["/usr/local/bin/start.sh"]
 
 # --- Nginx will serve this via docker-compose ---
