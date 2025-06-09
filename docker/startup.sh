@@ -43,10 +43,33 @@ setup_laravel() {
         php artisan key:generate
     fi
     
-    # Set proper permissions
+    # Set proper permissions - more aggressive approach
     echo "Setting permissions..."
+    
+    # Create directories if they don't exist
+    mkdir -p storage/logs
+    mkdir -p storage/framework/cache
+    mkdir -p storage/framework/sessions
+    mkdir -p storage/framework/views
+    mkdir -p bootstrap/cache
+    
+    # Set ownership recursively
     chown -R www:www /var/www/html
-    chmod -R 775 storage bootstrap/cache public/build
+    
+    # Set permissions recursively
+    chmod -R 775 storage
+    chmod -R 775 bootstrap/cache
+    chmod -R 775 public/build
+    
+    # Set specific permissions for framework directories
+    chmod -R 775 storage/framework/cache
+    chmod -R 775 storage/framework/sessions
+    chmod -R 775 storage/framework/views
+    chmod -R 775 storage/logs
+    
+    # Double-check ownership
+    chown -R www:www storage
+    chown -R www:www bootstrap/cache
     
     # Laravel 12 specific optimizations
     echo "Running Laravel 12 optimizations..."
