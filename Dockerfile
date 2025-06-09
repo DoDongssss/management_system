@@ -71,13 +71,19 @@ RUN groupadd -g 1000 www && useradd -u 1000 -g www www
 # Install PHP dependencies as root
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Set proper permissions
-RUN chown -R www:www /var/www/html \
+# Create necessary directories and set permissions
+RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
+    && chown -R www:www /var/www/html \
     && chmod -R 775 storage bootstrap/cache \
-    && chmod -R 775 public/build
+    && chmod -R 775 public/build \
+    && chmod -R 775 storage/framework/cache storage/framework/sessions storage/framework/views
+
+# Copy and set up startup script
+COPY docker/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
 
 EXPOSE 9000
 
-CMD ["php-fpm"]
+CMD ["/usr/local/bin/start.sh"]
 
 # --- Nginx will serve this via docker-compose ---
