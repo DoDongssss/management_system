@@ -78,9 +78,10 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions sto
     && chmod -R 775 public/build \
     && chmod -R 775 storage/framework/cache storage/framework/sessions storage/framework/views
 
-# Copy and set up scripts
+# Copy and set up scripts and configs
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY docker/start.sh /usr/local/bin/start.sh
+COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start.sh
 
 EXPOSE 9000
