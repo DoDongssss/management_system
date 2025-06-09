@@ -12,9 +12,9 @@ RUN npm run build
 # Stage 2: PHP for Laravel
 FROM php:8.2-fpm
 
-# Install system dependencies
+# Install system dependencies including netcat
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip nano \
+    git curl zip unzip nano netcat-traditional \
     libpng-dev libonig-dev libxml2-dev libzip-dev \
     && docker-php-ext-install pdo pdo_mysql zip
 

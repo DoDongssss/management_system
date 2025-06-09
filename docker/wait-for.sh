@@ -1,11 +1,29 @@
 #!/bin/bash
 
-# Wait for MySQL to be ready
+# Wait for MySQL to be ready using PHP instead of netcat
 echo "Waiting for MySQL to be ready..."
-while ! nc -z mysql 3306; do
-  sleep 1
+until php -r "
+    \$maxAttempts = 30;
+    \$attempt = 0;
+    while (\$attempt < \$maxAttempts) {
+        try {
+            \$pdo = new PDO('mysql:host=mysql;port=3306', 'laravel', 'secret');
+            \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            echo 'MySQL is ready!' . PHP_EOL;
+            exit(0);
+        } catch (PDOException \$e) {
+            \$attempt++;
+            if (\$attempt >= \$maxAttempts) {
+                echo 'Failed to connect to MySQL after ' . \$maxAttempts . ' attempts' . PHP_EOL;
+                exit(1);
+            }
+            sleep(2);
+        }
+    }
+"; do
+    echo "MySQL connection failed, retrying..."
+    sleep 2
 done
-echo "MySQL is ready!"
 
 # Generate application key if not exists
 cd /var/www
