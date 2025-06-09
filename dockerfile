@@ -26,6 +26,9 @@ WORKDIR /var/www
 # Copy project files
 COPY --from=frontend /app /var/www
 
+# Create .env file from .env.example if .env doesn't exist
+RUN if [ ! -f .env ]; then cp .env.example .env; fi
+
 # Install Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader
 
