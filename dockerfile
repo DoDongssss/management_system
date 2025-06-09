@@ -71,8 +71,8 @@ COPY --from=frontend-builder /app/public/build ./public/build
 # Create www user
 RUN addgroup -g 1000 www && adduser -u 1000 -G www -s /bin/bash -D www
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Install PHP dependencies (including dev dependencies for Pail)
+RUN composer install --optimize-autoloader --no-interaction
 
 # Create necessary directories for Laravel 12
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
