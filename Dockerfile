@@ -68,14 +68,13 @@ COPY --from=frontend /app/public/build ./public/build
 # Create www user
 RUN groupadd -g 1000 www && useradd -u 1000 -g www www
 
+# Install PHP dependencies as root
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
 # Set proper permissions
 RUN chown -R www:www /var/www/html \
     && chmod -R 775 storage bootstrap/cache \
     && chmod -R 775 public/build
-
-# Install PHP dependencies
-USER www
-RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 EXPOSE 9000
 
