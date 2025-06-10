@@ -1,36 +1,48 @@
-version: '2.27'
 services:
-  database:
-    image: mysql:8.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-      - MYSQL_DATABASE=${DB_DATABASE}
-      - MYSQL_ROOT_USER=${DB_USERNAME}
-      - MYSQL_PASSWORD=${DB_PASSWORD}
-    ports:
-      - '3307:3306'
-    volumes:
-      - db_data:/var/lib/mysql
-  php:
-    container_name: test
-    build:
-      context: .
-      target: php
-      args:
-        - APP_ENV=${APP_ENV}
-    environment:
-      - APP_ENV=${APP_ENV}
-      - CONTAINER_ROLE=app
+  app:
+    build: .
+    container_name: laravel_app
+    restart: unless-stopped
     working_dir: /var/www
     volumes:
       - .:/var/www
-    ports:
-      - '8000:8000'
-      - ${VITE_PORT:-5173}:${VITE_PORT:-5173}
+      - ./storage:/var/www/storage
     depends_on:
-      - database
-    links:
-      - database
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: your_db
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      APP_ENV: local
+      APP_DEBUG: true
+
+  nginx:
+    image: nginx:alpine
+    container_name: laravel_nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.0
+    container_name: laravel_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: your_db
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - '3306:3306'
 
 volumes:
-  db_data: ~
+  db_data:
