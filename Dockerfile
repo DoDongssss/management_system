@@ -34,16 +34,14 @@ RUN composer install --optimize-autoloader --no-dev --no-scripts
 # Copy package files for Node.js
 COPY package.json package-lock.json ./
 
-# Install Node dependencies
-RUN npm ci --only=production
+# Install Node dependencies (including dev dependencies for build)
+RUN npm ci
 
 # Copy application code
 COPY . .
 
-# Build assets (only if .env exists or we're in production)
-RUN if [ -f .env ] || [ "$APP_ENV" = "production" ]; then \
-        npm run build; \
-    fi
+# Build assets (always build in container to ensure manifest exists)
+RUN npm run build
 
 # Set correct permissions
 RUN chown -R www-data:www-data /var/www && \
@@ -59,6 +57,14 @@ RUN echo '#!/bin/sh' > /usr/local/bin/entrypoint.sh && \
     echo '    echo ".env file created successfully!"' >> /usr/local/bin/entrypoint.sh && \
     echo 'else' >> /usr/local/bin/entrypoint.sh && \
     echo '    echo ".env file already exists"' >> /usr/local/bin/entrypoint.sh && \
+    echo 'fi' >> /usr/local/bin/entrypoint.sh && \
+    echo 'echo "Checking for Vite manifest..."' >> /usr/local/bin/entrypoint.sh && \
+    echo 'if [ ! -f public/build/manifest.json ]; then' >> /usr/local/bin/entrypoint.sh && \
+    echo '    echo "Building Vite assets..."' >> /usr/local/bin/entrypoint.sh && \
+    echo '    npm run build' >> /usr/local/bin/entrypoint.sh && \
+    echo '    echo "Vite assets built successfully!"' >> /usr/local/bin/entrypoint.sh && \
+    echo 'else' >> /usr/local/bin/entrypoint.sh && \
+    echo '    echo "Vite manifest already exists"' >> /usr/local/bin/entrypoint.sh && \
     echo 'fi' >> /usr/local/bin/entrypoint.sh && \
     echo 'php artisan config:cache' >> /usr/local/bin/entrypoint.sh && \
     echo 'php artisan route:cache' >> /usr/local/bin/entrypoint.sh && \

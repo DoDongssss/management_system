@@ -1,0 +1,16 @@
+services:
+  app:
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+      VITE_APP_NAME: 'Laravel'
+    volumes:
+      - .:/var/www
+      - ./storage:/var/www/storage
+      - /var/www/node_modules
+      - /var/www/vendor
+
+  nginx:
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
