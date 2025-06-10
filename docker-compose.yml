@@ -34,8 +34,7 @@ services:
       - .:/var/www
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
     depends_on:
-      - app:
-        condition: service_healthy
+      - app
 
   mysql:
     image: mysql:8.0
