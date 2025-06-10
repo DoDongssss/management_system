@@ -19,7 +19,6 @@ RUN composer update --optimize-autoloader --no-dev
 RUN chmod 777 storage -R
 
 # Fix entrypoint script permissions and line endings
-RUN dos2unix docker/entrypoint.sh
 RUN chmod +x docker/entrypoint.sh
 
 ENTRYPOINT [ "docker/entrypoint.sh" ]
