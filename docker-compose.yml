@@ -17,6 +17,12 @@ services:
       DB_PASSWORD: root
       APP_ENV: local
       APP_DEBUG: true
+    healthcheck:
+      test: ['CMD', 'php-fpm', '-t']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   nginx:
     image: nginx:alpine
@@ -28,7 +34,8 @@ services:
       - .:/var/www
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
     depends_on:
-      - app
+      - app:
+        condition: service_healthy
 
   mysql:
     image: mysql:8.0
