@@ -15,5 +15,10 @@ COPY --from=composer:2.3.5 /usr/bin/composer /usr/bin/composer
 ENV PORT=8000
 
 RUN docker-php-ext-install mysqli pdo pdo_mysql
+RUN composer update --optimize-autoloader --no-dev
+RUN chmod 777 storage -R
+
+# Make entrypoint script executable
+RUN chmod +x Docker/entrypoint.sh
 
 ENTRYPOINT [ "Docker/entrypoint.sh" ]
