@@ -1,10 +1,17 @@
-# Start from official PHP image with extensions
+# Multi-stage build for better optimization
+FROM node:20-alpine AS node-builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY . .
+RUN npm run build
+
+# Main PHP application
 FROM php:8.2-fpm-alpine
 
-# Set working directory
-WORKDIR /var/www
-
-# Install system dependencies
+# Install system dependencies in one layer
 RUN apk add --no-cache \
     bash \
     git \
@@ -13,66 +20,36 @@ RUN apk add --no-cache \
     libpng-dev \
     libzip-dev \
     zip \
-    nodejs \
-    npm \
     mysql-client \
     postgresql-dev \
-    libpq-dev
+    libpq-dev \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql bcmath zip \
+    && rm -rf /var/cache/apk/*
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql bcmath zip
-
-# Install Composer globally
+# Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copy composer files first for better caching
+# Set working directory
+WORKDIR /var/www
+
+# Copy composer files and install dependencies
 COPY composer.json composer.lock ./
-
-# Install PHP dependencies
-RUN composer install --optimize-autoloader --no-dev --no-scripts
-
-# Copy package files for Node.js
-COPY package.json package-lock.json ./
-
-# Install Node dependencies (including dev dependencies for build)
-RUN npm ci
+RUN composer install --optimize-autoloader --no-dev --no-scripts --no-interaction
 
 # Copy application code
 COPY . .
 
-# Build assets (always build in container to ensure manifest exists)
-RUN npm run build
+# Copy built assets from node stage
+COPY --from=node-builder /app/public/build ./public/build
 
-# Set correct permissions
-RUN chown -R www-data:www-data /var/www && \
-    chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+# Set permissions
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# Create entrypoint script
-RUN echo '#!/bin/sh' > /usr/local/bin/entrypoint.sh && \
-    echo 'set -e' >> /usr/local/bin/entrypoint.sh && \
-    echo 'echo "Checking for .env file..."' >> /usr/local/bin/entrypoint.sh && \
-    echo 'if [ ! -f .env ]; then' >> /usr/local/bin/entrypoint.sh && \
-    echo '    echo "Creating .env file from .env.example..."' >> /usr/local/bin/entrypoint.sh && \
-    echo '    cp .env.example .env' >> /usr/local/bin/entrypoint.sh && \
-    echo '    echo ".env file created successfully!"' >> /usr/local/bin/entrypoint.sh && \
-    echo 'else' >> /usr/local/bin/entrypoint.sh && \
-    echo '    echo ".env file already exists"' >> /usr/local/bin/entrypoint.sh && \
-    echo 'fi' >> /usr/local/bin/entrypoint.sh && \
-    echo 'echo "Checking for Vite manifest..."' >> /usr/local/bin/entrypoint.sh && \
-    echo 'if [ ! -f public/build/manifest.json ]; then' >> /usr/local/bin/entrypoint.sh && \
-    echo '    echo "Building Vite assets..."' >> /usr/local/bin/entrypoint.sh && \
-    echo '    npm run build' >> /usr/local/bin/entrypoint.sh && \
-    echo '    echo "Vite assets built successfully!"' >> /usr/local/bin/entrypoint.sh && \
-    echo 'else' >> /usr/local/bin/entrypoint.sh && \
-    echo '    echo "Vite manifest already exists"' >> /usr/local/bin/entrypoint.sh && \
-    echo 'fi' >> /usr/local/bin/entrypoint.sh && \
-    echo 'php artisan config:cache' >> /usr/local/bin/entrypoint.sh && \
-    echo 'php artisan route:cache' >> /usr/local/bin/entrypoint.sh && \
-    echo 'php artisan view:cache' >> /usr/local/bin/entrypoint.sh && \
-    echo 'exec "$@"' >> /usr/local/bin/entrypoint.sh && \
-    chmod +x /usr/local/bin/entrypoint.sh
+# Simple entrypoint script
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Expose port
 EXPOSE 9000
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
