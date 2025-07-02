@@ -18,8 +18,10 @@ class RoomRateService
 
     /**
      * Get all active room rates.
+     *
+     * @return \Illuminate\Support\Collection
      */
-    public function getActiveRoomRates()
+    public function getActiveRoomRates(): \Illuminate\Support\Collection
     {
         try {
             return $this->roomRate
@@ -27,15 +29,25 @@ class RoomRateService
                 ->select('id', 'room_id', 'durations_hours', 'price')
                 ->get();
         } catch (Exception $e) {
-            Log::error("Error fetching active room rates: " . $e->getMessage());
+            Log::error("Error fetching active room rates", [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return collect();
         }
     }
 
     /**
      * Get paginated room rates with optional search and sorting.
+     *
+     * @param string $sort
+     * @param string $direction
+     * @param int $perPage
+     * @param string|null $search
+     * @param string|int|bool $status
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|\Illuminate\Support\Collection
      */
-    public function getRoomRates($sort = 'id', $direction = 'desc', $perPage = 10, $search = null, $status = 'all')
+    public function getRoomRates(string $sort = 'id', string $direction = 'desc', int $perPage = 10, ?string $search = null, $status = 'all')
     {
         try {
             return $this->roomRate
@@ -50,29 +62,51 @@ class RoomRateService
                 ->orderBy('id', 'desc')
                 ->paginate($perPage);
         } catch (Exception $e) {
-            Log::error("Error fetching room rates: " . $e->getMessage());
+            Log::error("Error fetching room rates", [
+                'sort' => $sort,
+                'direction' => $direction,
+                'perPage' => $perPage,
+                'search' => $search,
+                'status' => $status,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return collect();
         }
     }
 
     /**
      * Get a specific room rate by ID.
+     *
+     * @param string $id
+     * @return RoomRate|null
+     * @throws ModelNotFoundException
      */
     public function getRoomRateById(string $id): ?RoomRate
     {
         try {
             return $this->roomRate->with('room:id,name')->findOrFail($id);
         } catch (ModelNotFoundException $e) {
-            Log::error("Room rate not found: ID {$id}");
-            return null;
+            Log::error("Room rate not found", [
+                'room_rate_id' => $id,
+                'exception' => $e,
+            ]);
+            throw $e;
         } catch (Exception $e) {
-            Log::error("Error fetching room rate: " . $e->getMessage());
+            Log::error("Error fetching room rate", [
+                'room_rate_id' => $id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
 
     /**
      * Create a new room rate.
+     *
+     * @param array $data
+     * @return RoomRate|null
      */
     public function createRoomRate(array $data): ?RoomRate
     {
@@ -84,13 +118,22 @@ class RoomRateService
                 'is_active'       => $data['is_active'] ?? 1,
             ]);
         } catch (Exception $e) {
-            Log::error("Error creating room rate: " . $e->getMessage());
+            Log::error("Error creating room rate", [
+                'data' => $data,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
 
     /**
      * Update an existing room rate.
+     *
+     * @param string $id
+     * @param array $data
+     * @return RoomRate|null
+     * @throws ModelNotFoundException
      */
     public function updateRoomRate(string $id, array $data): ?RoomRate
     {
@@ -106,16 +149,28 @@ class RoomRateService
 
             return $roomRate;
         } catch (ModelNotFoundException $e) {
-            Log::error("Room rate not found for update: ID {$id}");
-            return null;
+            Log::error("Room rate not found for update", [
+                'room_rate_id' => $id,
+                'exception' => $e,
+            ]);
+            throw $e;
         } catch (Exception $e) {
-            Log::error("Error updating room rate: " . $e->getMessage());
+            Log::error("Error updating room rate", [
+                'room_rate_id' => $id,
+                'data' => $data,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
 
     /**
      * Delete a room rate.
+     *
+     * @param string $id
+     * @return bool
+     * @throws ModelNotFoundException
      */
     public function deleteRoomRate(string $id): bool
     {
@@ -124,10 +179,17 @@ class RoomRateService
             $roomRate->delete();
             return true;
         } catch (ModelNotFoundException $e) {
-            Log::error("Room rate not found for deletion: ID {$id}");
-            return false;
+            Log::error("Room rate not found for deletion", [
+                'room_rate_id' => $id,
+                'exception' => $e,
+            ]);
+            throw $e;
         } catch (Exception $e) {
-            Log::error("Error deleting room rate: " . $e->getMessage());
+            Log::error("Error deleting room rate", [
+                'room_rate_id' => $id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return false;
         }
     }

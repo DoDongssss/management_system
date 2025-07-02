@@ -23,6 +23,9 @@ class TenantController extends Controller
 
     /**
      * Display a listing of the tenants.
+     *
+     * @param Request $request
+     * @return Response
      */
     public function index(Request $request): Response
     {
@@ -40,7 +43,11 @@ class TenantController extends Controller
                 'filters' => compact('sort', 'direction', 'perPage', 'search'),
             ]);
         } catch (Exception $e) {
-            Log::error("Error fetching tenants: " . $e->getMessage());
+            Log::error("Error fetching tenants", [
+                'message' => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return Inertia::render('admin/tenant/index', [
                 'tenants' => [],
@@ -52,6 +59,9 @@ class TenantController extends Controller
 
     /**
      * Store a newly created tenant.
+     *
+     * @param TenantRequest $request
+     * @return RedirectResponse
      */
     public function store(TenantRequest $request): RedirectResponse
     {
@@ -60,7 +70,11 @@ class TenantController extends Controller
 
             return redirect()->route('tenant.index')->with('success', 'Tenant created successfully!');
         } catch (Exception $e) {
-            Log::error("Error creating tenant: " . $e->getMessage());
+            Log::error("Error creating tenant", [
+                'message' => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return redirect()->route('tenant.index')->with('error', 'Failed to create tenant.');
         }
@@ -68,6 +82,10 @@ class TenantController extends Controller
 
     /**
      * Update the specified tenant.
+     *
+     * @param TenantRequest $request
+     * @param string $id
+     * @return RedirectResponse
      */
     public function update(TenantRequest $request, string $id): RedirectResponse
     {
@@ -80,7 +98,12 @@ class TenantController extends Controller
 
             return redirect()->route('tenant.index')->with('success', 'Tenant updated successfully!');
         } catch (Exception $e) {
-            Log::error("Error updating tenant (ID: $id): " . $e->getMessage());
+            Log::error("Error updating tenant", [
+                'tenant_id' => $id,
+                'message' => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return redirect()->route('tenant.index')->with('error', 'Failed to update tenant.');
         }
@@ -88,6 +111,9 @@ class TenantController extends Controller
 
     /**
      * Remove the specified tenant.
+     *
+     * @param string $id
+     * @return RedirectResponse
      */
     public function destroy(string $id): RedirectResponse
     {
@@ -100,7 +126,11 @@ class TenantController extends Controller
 
             return back()->with('success', 'Tenant deleted successfully!');
         } catch (Exception $e) {
-            Log::error("Error deleting tenant (ID: $id): " . $e->getMessage());
+            Log::error("Error deleting tenant", [
+                'tenant_id' => $id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return back()->withErrors(['error' => 'Failed to delete tenant.']);
         }

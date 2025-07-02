@@ -5,10 +5,15 @@ namespace App\Http\Requests;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Handle validation for Room requests.
+ */
 class RoomRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * @return bool
      */
     public function authorize(): bool
     {
@@ -33,8 +38,8 @@ class RoomRequest extends FormRequest
             ],
             'name'          => 'required|string|max:255',
             'type'          => 'required|string|max:255',
-            'room_amenities' => 'nullable|string',
-            'image'        => 'nullable',
+            'room_amenities' => 'nullable|string', // Consider: 'array' if frontend sends as array
+            'image'        => 'nullable|file|mimes:jpg,jpeg,png,webp|max:2048',
             'status'        => 'required|string|max:255',
             'is_active'     => 'nullable|boolean',
         ];

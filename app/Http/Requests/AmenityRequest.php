@@ -5,10 +5,15 @@ namespace App\Http\Requests;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Handle validation for Amenity requests.
+ */
 class AmenityRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * @return bool
      */
     public function authorize(): bool
     {
@@ -28,7 +33,7 @@ class AmenityRequest extends FormRequest
                 'required',
                 'string',
                 'max:250',
-                Rule::unique('rooms', 'room_number')->ignore($amenityId),
+                Rule::unique('amenities', 'name')->ignore($amenityId),
             ],
             'icon'          => 'nullable|string|max:255',
             'is_active'     => 'nullable|boolean',

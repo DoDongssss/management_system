@@ -8,8 +8,14 @@ use Illuminate\Support\Facades\Log;
 
 class ReportService
 {
-
-    public function getSalesReport($startDate = null, $endDate = null)
+    /**
+     * Generate a sales report for bookings within a date range.
+     *
+     * @param string|null $startDate
+     * @param string|null $endDate
+     * @return array
+     */
+    public function getSalesReport(?string $startDate = null, ?string $endDate = null): array
     {
         try {
             // Validate dates if provided
@@ -62,10 +68,11 @@ class ReportService
             ];
         } catch (\Exception $e) {
             // Handle unexpected errors
-            Log::error('Sales report generation failed: ' . $e->getMessage(), [
-                'exception' => $e,
+            Log::error('Sales report generation failed', [
+                'message' => $e->getMessage(),
                 'start_date' => $startDate,
-                'end_date' => $endDate
+                'end_date' => $endDate,
+                'trace' => $e->getTraceAsString(),
             ]);
             
             return [

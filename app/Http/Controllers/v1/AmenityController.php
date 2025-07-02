@@ -23,6 +23,9 @@ class AmenityController extends Controller
 
     /**
      * Display a listing of the amenities.
+     *
+     * @param Request $request
+     * @return Response
      */
     public function index(Request $request): Response
     {
@@ -40,7 +43,11 @@ class AmenityController extends Controller
                 'filters' => compact('sort', 'direction', 'perPage', 'search'),
             ]);
         } catch (Exception $e) {
-            Log::error("Error fetching amenities: " . $e->getMessage());
+            Log::error("Error fetching amenities", [
+                'message' => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return Inertia::render('admin/amenity/index', [
                 'amenities' => [],
@@ -52,6 +59,9 @@ class AmenityController extends Controller
 
     /**
      * Store a newly created amenity.
+     *
+     * @param AmenityRequest $request
+     * @return RedirectResponse
      */
     public function store(AmenityRequest $request): RedirectResponse
     {
@@ -60,7 +70,11 @@ class AmenityController extends Controller
 
             return redirect()->route('amenity.index')->with('success', 'Amenity created successfully!');
         } catch (Exception $e) {
-            Log::error("Error creating amenity: " . $e->getMessage());
+            Log::error("Error creating amenity", [
+                'message' => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return redirect()->route('amenity.index')->with('error', 'Failed to create amenity.');
         }
@@ -68,6 +82,10 @@ class AmenityController extends Controller
 
     /**
      * Update the specified amenity.
+     *
+     * @param AmenityRequest $request
+     * @param string $id
+     * @return RedirectResponse
      */
     public function update(AmenityRequest $request, string $id): RedirectResponse
     {
@@ -80,7 +98,12 @@ class AmenityController extends Controller
 
             return redirect()->route('amenity.index')->with('success', 'Amenity updated successfully!');
         } catch (Exception $e) {
-            Log::error("Error updating amenity (ID: $id): " . $e->getMessage());
+            Log::error("Error updating amenity", [
+                'amenity_id' => $id,
+                'message' => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return redirect()->route('amenity.index')->with('error', 'Failed to update amenity.');
         }
@@ -88,6 +111,9 @@ class AmenityController extends Controller
 
     /**
      * Remove the specified amenity.
+     *
+     * @param string $id
+     * @return RedirectResponse
      */
     public function destroy(string $id): RedirectResponse
     {
@@ -100,7 +126,11 @@ class AmenityController extends Controller
 
             return back()->with('success', 'Amenity deleted successfully!');
         } catch (Exception $e) {
-            Log::error("Error deleting amenity (ID: $id): " . $e->getMessage());
+            Log::error("Error deleting amenity", [
+                'amenity_id' => $id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return back()->withErrors(['error' => 'Failed to delete amenity.']);
         }

@@ -17,16 +17,36 @@ class RoomService
         $this->room = $room;
     }
 
-    public function getActiveRooms()
+    /**
+     * Get all active rooms with related data.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getActiveRooms(): \Illuminate\Support\Collection
     {
         try {
-            return $this->room->where('is_active', 1)->select('id', 'room_number', 'name')->get();
+            return $this->room
+                ->with(['rates', 'roomAmenities', 'roomAmenities.amenity'])
+                ->where('is_active', 1)
+                ->select('id', 'room_number', 'name')
+                ->get();
         } catch (\Exception $e) {
-            return collect(); // return an empty collection on error
+            Log::error("Error fetching active rooms", [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return collect();
         }
     }
 
-    public function getActiveRoomsWithBookingStatus($search = null, $status = "all")
+    /**
+     * Get all active rooms with booking status and related data.
+     *
+     * @param string|null $search
+     * @param string|int|bool $status
+     * @return \Illuminate\Support\Collection
+     */
+    public function getActiveRoomsWithBookingStatus($search = null, $status = "all"): \Illuminate\Support\Collection
     {
         try {
             return $this->room
@@ -45,31 +65,38 @@ class RoomService
                     });
                 })
                 ->when($status === '1' || $status === true, function ($q) {
-                    // Only rooms that have at least one active booking
                     $q->whereHas('booking', function ($query) {
                         $query->where('status', 'active');
                     });
                 })
                 ->when($status === '0' || $status === false, function ($q) {
-                    // Only rooms that have NO active booking
                     $q->whereDoesntHave('booking', function ($query) {
                         $query->where('status', 'active');
                     });
                 })
                 ->get();
-
         } catch (\Exception $e) {
-            return collect(); // Return an empty collection on error
+            Log::error("Error fetching active rooms with booking status", [
+                'search' => $search,
+                'status' => $status,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return collect();
         }
     }
 
-
-
-
     /**
      * Get paginated rooms with optional search and sorting.
+     *
+     * @param string $sort
+     * @param string $direction
+     * @param int $perPage
+     * @param string|null $search
+     * @param string|int|bool $status
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|\Illuminate\Support\Collection
      */
-    public function getRooms($sort = 'id', $direction = 'desc', $perPage = 10, $search = null, $status = "all")
+    public function getRooms(string $sort = 'id', string $direction = 'desc', int $perPage = 10, ?string $search = null, $status = "all")
     {
         try {
             $query = $this->room->with(['roomAmenities', 'roomAmenities.amenity', 'rates'])
@@ -84,32 +111,53 @@ class RoomService
                 })
                 ->orderBy('is_active', 'desc')
                 ->orderBy($sort, $direction);
-                // dd($query->paginate($perPage));
             return $query->paginate($perPage);
         } catch (Exception $e) {
-            Log::error("Error fetching rooms: " . $e->getMessage());
-            return collect(); 
+            Log::error("Error fetching rooms", [
+                'sort' => $sort,
+                'direction' => $direction,
+                'perPage' => $perPage,
+                'search' => $search,
+                'status' => $status,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return collect();
         }
     }
 
     /**
      * Get a specific room by ID.
+     *
+     * @param string $id
+     * @return Room|null
+     * @throws ModelNotFoundException
      */
     public function getRoomById(string $id): ?Room
     {
         try {
             return $this->room->findOrFail($id);
         } catch (ModelNotFoundException $e) {
-            Log::error("Room not found: ID {$id}");
-            return null;
+            Log::error("Room not found", [
+                'room_id' => $id,
+                'exception' => $e,
+            ]);
+            throw $e;
         } catch (Exception $e) {
-            Log::error("Error fetching room: " . $e->getMessage());
+            Log::error("Error fetching room", [
+                'room_id' => $id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
 
     /**
      * Create a new room.
+     *
+     * @param array $data
+     * @return Room|null
      */
     public function createRoom(array $data): ?Room
     {
@@ -120,10 +168,10 @@ class RoomService
 
             $amenityIds = [];
             if (!empty($data['room_amenities'])) {
-                $amenityIds = explode(',', $data['room_amenities']); 
-                $amenityIds = array_map('intval', $amenityIds); 
+                $amenityIds = explode(',', $data['room_amenities']);
+                $amenityIds = array_map('intval', $amenityIds);
             }
-    
+
             $room = $this->room->create([
                 'room_number' => $data['room_number'],
                 'name' => $data['name'],
@@ -132,7 +180,7 @@ class RoomService
                 'status' => $data['status'],
                 'is_active' => $data['is_active'] ?? true,
             ]);
-    
+
             if ($room && !empty($amenityIds)) {
                 foreach ($amenityIds as $amenityId) {
                     $room->roomAmenities()->create([
@@ -141,23 +189,31 @@ class RoomService
                     ]);
                 }
             }
-    
+
             return $room;
         } catch (Exception $e) {
-            Log::error("Error creating room: " . $e->getMessage());
+            Log::error("Error creating room", [
+                'data' => $data,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
-    
 
     /**
      * Update an existing room.
+     *
+     * @param string $id
+     * @param array $data
+     * @return Room|null
+     * @throws ModelNotFoundException
      */
     public function updateRoom(string $id, array $data): ?Room
     {
         try {
             $room = $this->room->findOrFail($id);
-    
+
             if (isset($data['image']) && $data['image']->isValid()) {
                 if ($room->image) {
                     Storage::disk('public')->delete($room->image);
@@ -166,7 +222,7 @@ class RoomService
             } else {
                 $data['image'] = $room->image; // Keep the existing image
             }
-    
+
             $room->update([
                 'room_number' => $data['room_number'],
                 'name' => $data['name'],
@@ -179,9 +235,9 @@ class RoomService
             if (!empty($data['room_amenities'])) {
                 $amenityIds = explode(',', $data['room_amenities']);
                 $amenityIds = array_map('intval', $amenityIds);
-    
+
                 $room->roomAmenities()->delete();
-    
+
                 foreach ($amenityIds as $amenityId) {
                     $room->roomAmenities()->create([
                         'amenity_id' => $amenityId,
@@ -189,20 +245,31 @@ class RoomService
                     ]);
                 }
             }
-    
+
             return $room;
         } catch (ModelNotFoundException $e) {
-            Log::error("Room not found for update: ID {$id}");
-            return null;
+            Log::error("Room not found for update", [
+                'room_id' => $id,
+                'exception' => $e,
+            ]);
+            throw $e;
         } catch (Exception $e) {
-            Log::error("Error updating room: " . $e->getMessage());
+            Log::error("Error updating room", [
+                'room_id' => $id,
+                'data' => $data,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
-    
 
     /**
-     * Soft-delete a room (mark as inactive or delete).
+     * Delete a room by ID.
+     *
+     * @param string $id
+     * @return bool
+     * @throws ModelNotFoundException
      */
     public function deleteRoom(string $id): bool
     {
@@ -211,10 +278,17 @@ class RoomService
             $room->delete();
             return true;
         } catch (ModelNotFoundException $e) {
-            Log::error("Room not found for deletion: ID {$id}");
-            return false;
+            Log::error("Room not found for deletion", [
+                'room_id' => $id,
+                'exception' => $e,
+            ]);
+            throw $e;
         } catch (Exception $e) {
-            Log::error("Error deleting room: " . $e->getMessage());
+            Log::error("Error deleting room", [
+                'room_id' => $id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return false;
         }
     }

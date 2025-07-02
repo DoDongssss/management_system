@@ -26,6 +26,9 @@ class RoomController extends Controller
 
     /**
      * Display a listing of the rooms.
+     *
+     * @param Request $request
+     * @return Response
      */
     public function index(Request $request): Response
     {
@@ -46,7 +49,11 @@ class RoomController extends Controller
                 'filters' => compact('sort', 'direction', 'perPage', 'search', 'status'),
             ]);
         } catch (Exception $e) {
-            Log::error("Error fetching rooms: " . $e->getMessage());
+            Log::error("Error fetching rooms", [
+                'message' => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return Inertia::render('admin/room/index', [
                 'rooms' => [],
@@ -59,6 +66,9 @@ class RoomController extends Controller
 
     /**
      * Store a newly created room.
+     *
+     * @param RoomRequest $request
+     * @return RedirectResponse
      */
     public function store(RoomRequest $request): RedirectResponse
     {
@@ -67,7 +77,11 @@ class RoomController extends Controller
 
             return redirect()->route('room.index')->with('success', 'Room created successfully!');
         } catch (Exception $e) {
-            Log::error("Error creating room: " . $e->getMessage());
+            Log::error("Error creating room", [
+                'message' => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return redirect()->route('room.index')->with('error', 'Failed to create room.');
         }
@@ -75,6 +89,10 @@ class RoomController extends Controller
 
     /**
      * Update the specified room.
+     *
+     * @param RoomRequest $request
+     * @param string $id
+     * @return RedirectResponse
      */
     public function update(RoomRequest $request, string $id): RedirectResponse
     {
@@ -87,7 +105,12 @@ class RoomController extends Controller
 
             return redirect()->route('room.index')->with('success', 'Room updated successfully!');
         } catch (Exception $e) {
-            Log::error("Error updating room (ID: $id): " . $e->getMessage());
+            Log::error("Error updating room", [
+                'room_id' => $id,
+                'message' => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return redirect()->route('room.index')->with('error', 'Failed to update room.');
         }
@@ -95,6 +118,9 @@ class RoomController extends Controller
 
     /**
      * Remove the specified room.
+     *
+     * @param string $id
+     * @return RedirectResponse
      */
     public function destroy(string $id): RedirectResponse
     {
@@ -107,7 +133,11 @@ class RoomController extends Controller
 
             return back()->with('success', 'Room deleted successfully!');
         } catch (Exception $e) {
-            Log::error("Error deleting room (ID: $id): " . $e->getMessage());
+            Log::error("Error deleting room", [
+                'room_id' => $id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return back()->withErrors(['error' => 'Failed to delete room.']);
         }

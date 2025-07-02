@@ -17,7 +17,14 @@ class BookingService
         $this->booking = $booking;
     }
 
-    public function getAllBookings($search = null, $status = 'all')
+    /**
+     * Get all bookings with optional search and status filter.
+     *
+     * @param string|null $search
+     * @param string $status
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|array
+     */
+    public function getAllBookings(?string $search = null, string $status = 'all')
     {
         try {
             return $this->booking
@@ -39,11 +46,15 @@ class BookingService
                 ->orderBy('id', 'desc')
                 ->paginate(10);
         } catch (\Exception $e) {
-            Log::error("Failed to retrieve bookings: " . $e->getMessage());
+            Log::error("Failed to retrieve bookings", [
+                'message' => $e->getMessage(),
+                'search' => $search,
+                'status' => $status,
+                'trace' => $e->getTraceAsString(),
+            ]);
             return [];
         }
     }
-
 
     /**
      * Update the status of a booking.
@@ -51,6 +62,7 @@ class BookingService
      * @param int $bookingId
      * @param string $status
      * @return Booking|null
+     * @throws ModelNotFoundException
      */
     public function updateStatus(int $bookingId, string $status): ?Booking
     {
@@ -61,14 +73,30 @@ class BookingService
 
             return $booking;
         } catch (ModelNotFoundException $e) {
-            Log::error("Booking not found: ID {$bookingId}");
-            return null;
+            Log::error("Booking not found", [
+                'booking_id' => $bookingId,
+                'exception' => $e,
+            ]);
+            throw $e;
         } catch (\Exception $e) {
-            Log::error("Failed to update booking status: " . $e->getMessage());
+            Log::error("Failed to update booking status", [
+                'booking_id' => $bookingId,
+                'status' => $status,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
 
+    /**
+     * Void a booking by updating its status.
+     *
+     * @param int $bookingId
+     * @param string $status
+     * @return Booking|null
+     * @throws ModelNotFoundException
+     */
     public function voidBooking(int $bookingId, string $status): ?Booking
     {
         try {
@@ -78,14 +106,28 @@ class BookingService
 
             return $booking;
         } catch (ModelNotFoundException $e) {
-            Log::error("Booking not found: ID {$bookingId}");
-            return null;
+            Log::error("Booking not found", [
+                'booking_id' => $bookingId,
+                'exception' => $e,
+            ]);
+            throw $e;
         } catch (\Exception $e) {
-            Log::error("Failed to void booking status: " . $e->getMessage());
+            Log::error("Failed to void booking status", [
+                'booking_id' => $bookingId,
+                'status' => $status,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
 
+    /**
+     * Create a new booking and associated tenant.
+     *
+     * @param array $data
+     * @return Booking|null
+     */
     public function createBooking(array $data): ?Booking
     {
         try {
@@ -101,18 +143,11 @@ class BookingService
             $checkIn = Carbon::now('Asia/Manila');
             $checkOut = $checkIn->copy()->addHours((int) $data['total_duration_hours']);
 
-            // Format datetimes
-            $data['check_in'] = $checkIn->format('Y-m-d H:i:s');
-            $data['check_out'] = $checkOut->format('Y-m-d H:i:s');
-    
             // Step 3: Inject computed data
             $data['tenant_id'] = $tenant->id;
             $data['check_in'] = $checkIn;
             $data['check_out'] = $checkOut;
 
-            // dd($data);
-
-    
             // Step 4: Save booking
             return $this->booking->create([
                 'tenant_id' => $tenant->id,
@@ -125,7 +160,11 @@ class BookingService
             ]);
     
         } catch (\Exception $e) {
-            Log::error("Failed to create booking: " . $e->getMessage());
+            Log::error("Failed to create booking", [
+                'data' => $data,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }

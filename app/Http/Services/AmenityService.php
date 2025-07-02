@@ -17,24 +17,38 @@ class AmenityService
     }
 
     /**
-     * Get paginated amenities with optional search and sorting.
+     * Get all active amenities with related rooms.
+     *
+     * @return \Illuminate\Support\Collection
      */
-    public function getActiveAmenities()
+    public function getActiveAmenities(): \Illuminate\Support\Collection
     {
         try {
             return $this->amenity
+                ->with('rooms')
                 ->where('is_active', 1)
                 ->select('id', 'name', 'icon')
                 ->get();
         } catch (Exception $e) {
-            Log::error("Error fetching amenities: " . $e->getMessage());
+            Log::error("Error fetching active amenities", [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return collect();
         }
     }
+
     /**
      * Get paginated amenities with optional search and sorting.
+     *
+     * @param string $sort
+     * @param string $direction
+     * @param int $perPage
+     * @param string|null $search
+     * @param string|int|bool $status
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|\Illuminate\Support\Collection
      */
-    public function getAmenities($sort = 'id', $direction = 'desc', $perPage = 10, $search = null, $status = 'all')
+    public function getAmenities(string $sort = 'id', string $direction = 'desc', int $perPage = 10, ?string $search = null, $status = 'all')
     {
         try {
             return $this->amenity
@@ -46,29 +60,51 @@ class AmenityService
                 ->orderBy('id', 'desc')
                 ->paginate($perPage);
         } catch (Exception $e) {
-            Log::error("Error fetching amenities: " . $e->getMessage());
+            Log::error("Error fetching amenities", [
+                'sort' => $sort,
+                'direction' => $direction,
+                'perPage' => $perPage,
+                'search' => $search,
+                'status' => $status,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return collect();
         }
     }
 
     /**
      * Get a specific amenity by ID.
+     *
+     * @param string $id
+     * @return Amenity|null
+     * @throws ModelNotFoundException
      */
     public function getAmenityById(string $id): ?Amenity
     {
         try {
             return $this->amenity->findOrFail($id);
         } catch (ModelNotFoundException $e) {
-            Log::error("Amenity not found: ID {$id}");
-            return null;
+            Log::error("Amenity not found", [
+                'amenity_id' => $id,
+                'exception' => $e,
+            ]);
+            throw $e;
         } catch (Exception $e) {
-            Log::error("Error fetching amenity: " . $e->getMessage());
+            Log::error("Error fetching amenity", [
+                'amenity_id' => $id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
 
     /**
      * Create a new amenity.
+     *
+     * @param array $data
+     * @return Amenity|null
      */
     public function createAmenity(array $data): ?Amenity
     {
@@ -79,13 +115,22 @@ class AmenityService
                 'is_active' => $data['is_active'] ?? true,
             ]);
         } catch (Exception $e) {
-            Log::error("Error creating amenity: " . $e->getMessage());
+            Log::error("Error creating amenity", [
+                'data' => $data,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
 
     /**
      * Update an existing amenity.
+     *
+     * @param string $id
+     * @param array $data
+     * @return Amenity|null
+     * @throws ModelNotFoundException
      */
     public function updateAmenity(string $id, array $data): ?Amenity
     {
@@ -100,16 +145,28 @@ class AmenityService
 
             return $amenity;
         } catch (ModelNotFoundException $e) {
-            Log::error("Amenity not found for update: ID {$id}");
-            return null;
+            Log::error("Amenity not found for update", [
+                'amenity_id' => $id,
+                'exception' => $e,
+            ]);
+            throw $e;
         } catch (Exception $e) {
-            Log::error("Error updating amenity: " . $e->getMessage());
+            Log::error("Error updating amenity", [
+                'amenity_id' => $id,
+                'data' => $data,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return null;
         }
     }
 
     /**
      * Delete an amenity.
+     *
+     * @param string $id
+     * @return bool
+     * @throws ModelNotFoundException
      */
     public function deleteAmenity(string $id): bool
     {
@@ -118,10 +175,17 @@ class AmenityService
             $amenity->delete();
             return true;
         } catch (ModelNotFoundException $e) {
-            Log::error("Amenity not found for deletion: ID {$id}");
-            return false;
+            Log::error("Amenity not found for deletion", [
+                'amenity_id' => $id,
+                'exception' => $e,
+            ]);
+            throw $e;
         } catch (Exception $e) {
-            Log::error("Error deleting amenity: " . $e->getMessage());
+            Log::error("Error deleting amenity", [
+                'amenity_id' => $id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return false;
         }
     }

@@ -5,10 +5,15 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Handle validation for Room Rate requests.
+ */
 class RoomRateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * @return bool
      */
     public function authorize(): bool
     {
@@ -35,7 +40,7 @@ class RoomRateRequest extends FormRequest
                     })
                     ->ignore($roomRateId)
             ],
-            'price'     => 'required|integer',
+            'price'     => 'required|numeric|min:0',
             'is_active' => 'nullable|boolean',
         ];
     }
